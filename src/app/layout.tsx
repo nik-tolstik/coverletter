@@ -1,9 +1,22 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { Manrope, Onest } from "next/font/google";
+import { cn } from "@/shared/lib/utils";
+import { AppProviders } from "@/_app/providers";
+
+const manropeHeading = Manrope({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+
+const onest = Onest({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 export const metadata: Metadata = {
-  title: "Coverletter",
-  description: "Coverletter app",
+  title: "Сопроводительное письмо",
+  description: "Генератор сопроводительных писем",
 };
 
 export default function RootLayout({
@@ -12,8 +25,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html
+      lang="ru"
+      className={cn("font-sans", onest.variable, manropeHeading.variable)}
+    >
+      <body>
+        <AppProviders>{children}</AppProviders>
+      </body>
     </html>
   );
 }
