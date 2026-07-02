@@ -6,5 +6,5 @@ export function ProfilePage({
 }: {
   initialProfile: ProfileState;
 }) {
-  return <ProfileEditorPage initialProfile={initialProfile} />;
+  return <ProfileEditorPage initialProfile={initialProfile.profile} />;
 }

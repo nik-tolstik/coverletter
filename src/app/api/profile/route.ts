@@ -1,5 +1,4 @@
 import { saveProfile, getProfile } from "@/entities/profile/server";
-import type { ProfileFormState } from "@/entities/profile";
 import { profileWriteRequestSchema } from "@/features/edit-profile/server";
 
 export const dynamic = "force-dynamic";
@@ -11,17 +10,28 @@ export async function GET() {
 }
 
 export async function PUT(request: Request) {
-  const payload = profileWriteRequestSchema.safeParse(await request.json());
+  let requestBody: unknown;
+
+  try {
+    requestBody = await request.json();
+  } catch {
+    return Response.json(
+      { error: "Некорректный JSON в теле запроса." },
+      { status: 400 },
+    );
+  }
+
+  const payload = profileWriteRequestSchema.safeParse(requestBody);
 
   if (!payload.success) {
     return Response.json(
-      { error: "Профиль не может быть пустым." },
+      { error: payload.error },
       { status: 400 },
     );
   }
 
   try {
-    const profile = await saveProfile(payload.data.profile as ProfileFormState);
+    const profile = await saveProfile(payload.data.profile);
 
     return Response.json(profile);
   } catch (error) {

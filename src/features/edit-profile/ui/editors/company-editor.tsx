@@ -1,0 +1,153 @@
+"use client";
+
+import { ChevronDownIcon, PlusIcon, Trash2Icon } from "lucide-react";
+import { useState } from "react";
+
+import type {
+  ExperienceCompanyForm,
+  ExperienceProjectForm,
+} from "@/entities/profile";
+import { cn } from "@/shared/lib/utils";
+import { Button } from "@/shared/ui/button";
+import { FieldGroup } from "@/shared/ui/field";
+
+import { CollapsibleContent } from "../collapsible-content";
+import { CompanyDatesField } from "../fields/company-dates-field";
+import { TextInputField } from "../fields/text-input-field";
+import { ExperienceProjectEditor } from "./experience-project-editor";
+
+export function CompanyEditor({
+  company,
+  index,
+  onChange,
+  onRemove,
+  onProjectChange,
+  onProjectAdd,
+  onProjectRemove,
+}: {
+  company: ExperienceCompanyForm;
+  index: number;
+  onChange: (company: ExperienceCompanyForm) => void;
+  onRemove: () => void;
+  onProjectChange: (
+    projectIndex: number,
+    project: ExperienceProjectForm,
+  ) => void;
+  onProjectAdd: () => void;
+  onProjectRemove: (projectIndex: number) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(true);
+  const contentId = `company-${index}-content`;
+  const companyTitle = company.companyName || `Компания ${index + 1}`;
+  const companyMeta = [company.role, company.dates].filter(Boolean).join(" · ");
+
+  function updateCompanyField(
+    key: keyof Omit<ExperienceCompanyForm, "projects">,
+    value: string,
+  ) {
+    onChange({
+      ...company,
+      [key]: value,
+    });
+  }
+
+  return (
+    <section className="flex flex-col rounded-xl bg-input/20 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-heading text-base font-medium">
+              {companyTitle}
+            </span>
+            {companyMeta && (
+              <span className="truncate text-xs text-muted-foreground">
+                {companyMeta}
+              </span>
+            )}
+          </span>
+        </button>
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={onRemove}
+          aria-label={`Удалить компанию ${companyTitle}`}
+        >
+          <Trash2Icon />
+        </Button>
+      </div>
+
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-5"
+      >
+        <div className="flex flex-col gap-5 pt-1">
+          <FieldGroup className="grid gap-5">
+            <TextInputField
+              id={`company-${index}-name`}
+              label="Компания"
+              placeholder="Acme Corp"
+              value={company.companyName}
+              onChange={(value) => updateCompanyField("companyName", value)}
+            />
+            <TextInputField
+              id={`company-${index}-role`}
+              label="Роль"
+              placeholder="Frontend Engineer"
+              value={company.role}
+              onChange={(value) => updateCompanyField("role", value)}
+            />
+            <CompanyDatesField
+              id={`company-${index}-dates`}
+              label="Даты"
+              value={company.dates}
+              onChange={(value) => updateCompanyField("dates", value)}
+            />
+            <TextInputField
+              id={`company-${index}-domain`}
+              label="Домен"
+              placeholder="FinTech"
+              value={company.domain}
+              onChange={(value) => updateCompanyField("domain", value)}
+            />
+          </FieldGroup>
+
+          {company.projects.map((project, projectIndex) => (
+            <ExperienceProjectEditor
+              key={projectIndex}
+              project={project}
+              companyIndex={index}
+              projectIndex={projectIndex}
+              onChange={(nextProject) =>
+                onProjectChange(projectIndex, nextProject)
+              }
+              onRemove={() => onProjectRemove(projectIndex)}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="self-start"
+            onClick={onProjectAdd}
+          >
+            <PlusIcon data-icon="inline-start" />
+            Добавить проект
+          </Button>
+        </div>
+      </CollapsibleContent>
+    </section>
+  );
+}
