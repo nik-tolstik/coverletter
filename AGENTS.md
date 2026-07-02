@@ -17,6 +17,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Keep all code comments in English.
 - Do not use emoji in code, UI copy, documentation, comments, commits, or agent responses.
 - Do not add descriptions for fields, blocks, or UI sections unless the user explicitly asks for them.
+- Verify work in a browser only when the user explicitly asks to check the result in a browser.
+- When browser verification is explicitly requested, use the project Playwright setup with `pnpm test:e2e` or `pnpm exec playwright`; do not rely on a system Chrome path.
 
 # Project Structure
 
