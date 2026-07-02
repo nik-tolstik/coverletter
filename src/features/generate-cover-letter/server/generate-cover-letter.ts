@@ -66,7 +66,7 @@ ${profileMarkdown}
 
 Cover letter rules:
 
-${formatBullets(coverLetterRules)}
+${formatLines(coverLetterRules)}
 
 Output format:
 
@@ -96,6 +96,10 @@ Write every sentence of the final answer in ${language}.`;
 
 function formatBullets(items: string[]) {
   return items.map((item) => `- ${item}`).join("\n");
+}
+
+function formatLines(items: string[]) {
+  return items.join("\n");
 }
 
 function getOutputFormatRules(useEmailFormat: boolean) {

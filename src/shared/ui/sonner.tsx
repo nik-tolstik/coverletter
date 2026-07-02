@@ -1,6 +1,7 @@
 "use client";
 
 import type { CSSProperties } from "react";
+import { useEffect, useState } from "react";
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -10,10 +11,26 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const Toaster = ({ ...props }: ToasterProps) => {
+const MOBILE_TOAST_QUERY = "(max-width: 767px)";
+
+const Toaster = ({ position, ...props }: ToasterProps) => {
+  const [isMobile, setIsMobile] = useState(false);
+  const toastPosition = isMobile ? "top-center" : (position ?? "bottom-right");
+
+  useEffect(() => {
+    const query = window.matchMedia(MOBILE_TOAST_QUERY);
+    const syncIsMobile = () => setIsMobile(query.matches);
+
+    syncIsMobile();
+    query.addEventListener("change", syncIsMobile);
+
+    return () => query.removeEventListener("change", syncIsMobile);
+  }, []);
+
   return (
     <Sonner
       className="toaster group"
+      position={toastPosition}
       icons={{
         success: (
           <CircleCheckIcon className="size-4" />

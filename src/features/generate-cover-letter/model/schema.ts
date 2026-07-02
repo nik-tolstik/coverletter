@@ -74,9 +74,5 @@ function readStringList(value: unknown, fallback: string[]) {
           .filter(Boolean)
       : [];
 
-  return rules.length ? deduplicateList(rules) : fallback;
-}
-
-function deduplicateList(items: string[]) {
-  return Array.from(new Set(items));
+  return rules.length ? rules : fallback;
 }

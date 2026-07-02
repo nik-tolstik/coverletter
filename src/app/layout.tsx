@@ -3,6 +3,7 @@ import "./globals.css";
 import { Manrope, Onest } from "next/font/google";
 import { cn } from "@/shared/lib/utils";
 import { AppProviders } from "@/_app/providers";
+import { AppBottomNavigation } from "@/widgets/app-navigation";
 
 const manropeHeading = Manrope({
   subsets: ["latin"],
@@ -15,7 +16,7 @@ const onest = Onest({
 });
 
 export const metadata: Metadata = {
-  title: "Сопроводительное письмо",
+  title: "Coverletter",
   description: "Генератор сопроводительных писем",
 };
 
@@ -30,7 +31,10 @@ export default function RootLayout({
       className={cn("font-sans", onest.variable, manropeHeading.variable)}
     >
       <body>
-        <AppProviders>{children}</AppProviders>
+        <AppProviders>
+          {children}
+          <AppBottomNavigation />
+        </AppProviders>
       </body>
     </html>
   );

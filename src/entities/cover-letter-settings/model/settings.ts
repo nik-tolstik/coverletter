@@ -49,7 +49,7 @@ export const OPENROUTER_MODEL_OPTIONS = [
 export const COVER_LETTER_TENSE_RULE =
   'Для английских писем текущий интерес, мотивацию и готовность обсудить роль писать в настоящем времени: "I\'m interested...", "I\'m excited about..." или "This role caught my attention because..."; не писать "I was interested...".';
 
-export const DEFAULT_COVER_LETTER_RULES = [
+const LEGACY_DEFAULT_COVER_LETTER_RULES = [
   "Обращаться к компании и роли, если их можно понять из вакансии.",
   "Начинать с прямой причины интереса и соответствия роли.",
   COVER_LETTER_TENSE_RULE,
@@ -58,6 +58,73 @@ export const DEFAULT_COVER_LETTER_RULES = [
   "Предпочитать конкретные проектные примеры общим формулировкам.",
   "Закончить коротким уверенным завершением.",
   "Вывести только текст письма.",
+];
+
+const FLAT_DEFAULT_COVER_LETTER_RULES = [
+  "Start with a polite neutral greeting.",
+  COVER_LETTER_TENSE_RULE,
+  "Mention the position and company if they are clear from the vacancy.",
+  "Say why this vacancy caught my attention.",
+  "Connect the role with my relevant experience.",
+  "End politely and simply.",
+  "If the contact person's name is known, address them by name.",
+  'For Russian letters, if the contact person\'s name is unknown, use "Здравствуйте!" or "Добрый день!".',
+  'Do not use casual greetings such as "Привет" or "Приветствую".',
+  'Do not start with "Откликаюсь на позицию...".',
+  'Use simple opening phrases such as "Меня заинтересовала вакансия...", "Пишу вам по поводу вакансии...", or "Увидел вашу вакансию...".',
+  "Write in a simple, human, professional tone.",
+  "Avoid overly formal, bureaucratic, or corporate wording.",
+  "Avoid phrases that sound too polished, dramatic, or artificial.",
+  'Do not use obvious reasons such as "I like frontend", "I enjoy working on interfaces", or "this work is close to me".',
+  "Explain interest through one concrete detail from the vacancy: product, tasks, stack, team, processes, responsibility, or domain.",
+  'Keep the interest sentence simple: "Меня заинтересовало [specific detail from the vacancy], потому что у меня есть опыт в [relevant experience]."',
+  "If there is little company context, explain interest through the role's tasks, not through generic enthusiasm.",
+  'Avoid abstract phrases such as "interesting project", "promising company", "great team", "I want to grow", or "the work is close to me".',
+  "Do not repeat the resume.",
+  "Use only facts from the candidate profile and vacancy.",
+  "Do not invent experience, metrics, technologies, employers, or achievements.",
+  "Mention 2-4 relevant facts from my experience.",
+  "Do not use generic phrases without specifics.",
+  "Do not use bullet points inside the final letter.",
+  "Keep the letter within 3-4 short paragraphs.",
+  "Output only the letter text.",
+  'End the letter in the same language as the final output. For Russian letters, use: "Буду рад обсудить, как могу быть полезен вашей команде. Спасибо вам и хорошего вам дня!" For English letters, use: "I would be glad to discuss how I can be useful to your team. Thank you, and have a great day!" Do not mix languages in the final letter.',
+  "Mention technologies and back them up with facts.",
+];
+
+export const DEFAULT_COVER_LETTER_RULES = [
+  "Structure:",
+  "1. Start with a polite neutral greeting.",
+  COVER_LETTER_TENSE_RULE,
+  "2. Mention the position and company if they are clear from the vacancy.",
+  "3. Say why this vacancy caught my attention.",
+  "4. Connect the role with my relevant experience.",
+  "5. End politely and simply.",
+  "Rules:",
+  "- If the contact person's name is known, address them by name.",
+  '- If the contact person\'s name is unknown, use "Здравствуйте!" or "Добрый день!".',
+  '- Do not use casual greetings such as "Привет" or "Приветствую".',
+  '- Do not start with "Откликаюсь на позицию...".',
+  '- Use simple opening phrases such as "Меня заинтересовала вакансия...", "Пишу вам по поводу вакансии...", or "Увидел вашу вакансию...".',
+  "- Write in a simple, human, professional tone.",
+  "- Avoid overly formal, bureaucratic, or corporate wording.",
+  "- Avoid phrases that sound too polished, dramatic, or artificial.",
+  '- Do not use obvious reasons such as "I like frontend", "I enjoy working on interfaces", or "this work is close to me".',
+  "- Explain interest through one concrete detail from the vacancy: product, tasks, stack, team, processes, responsibility, or domain.",
+  '- Keep the interest sentence simple: "Меня заинтересовало [specific detail from the vacancy], потому что у меня есть опыт в [relevant experience]."',
+  "- If there is little company context, explain interest through the role's tasks, not through generic enthusiasm.",
+  '- Avoid abstract phrases such as "interesting project", "promising company", "great team", "I want to grow", or "the work is close to me".',
+  "- Do not repeat the resume.",
+  "- Use only facts from the candidate profile and vacancy.",
+  "- Do not invent experience, metrics, technologies, employers, or achievements.",
+  "- Mention 2-4 relevant facts from my experience.",
+  "- Do not use generic phrases without specifics.",
+  "- Do not use bullet points inside the final letter.",
+  "- Keep the letter within 3-4 short paragraphs.",
+  "- Output only the letter text.",
+  '- End the letter in the same language as the final output. For Russian letters, use: "Буду рад обсудить, как могу быть полезен вашей команде. Спасибо вам и хорошего вам дня!" For English letters, use: "I would be glad to discuss how I can be useful to your team. Thank you, and have a great day!" Do not mix languages in the final letter.',
+  COVER_LETTER_TENSE_RULE,
+  "- Mention technologies and back them up with facts.",
 ];
 
 export type CoverLetterSettingsForm = {
@@ -153,9 +220,27 @@ export function normalizeOpenRouterModel(model: string) {
 }
 
 function normalizeCoverLetterRules(items: string[]) {
-  return ensureRules(
-    normalizeListWithFallback(items, DEFAULT_COVER_LETTER_RULES),
-    [COVER_LETTER_TENSE_RULE],
+  const normalizedItems = normalizeRuleLines(items);
+
+  if (!normalizedItems.length || isDefaultCoverLetterRules(normalizedItems)) {
+    return DEFAULT_COVER_LETTER_RULES;
+  }
+
+  return ensureRules(normalizedItems, [COVER_LETTER_TENSE_RULE]);
+}
+
+function isDefaultCoverLetterRules(items: string[]) {
+  return [
+    LEGACY_DEFAULT_COVER_LETTER_RULES,
+    FLAT_DEFAULT_COVER_LETTER_RULES,
+    DEFAULT_COVER_LETTER_RULES,
+  ].some((rules) => hasSameRules(items, rules));
+}
+
+function hasSameRules(items: string[], rules: string[]) {
+  return (
+    items.length === rules.length &&
+    items.every((item, index) => item === rules[index])
   );
 }
 
@@ -169,10 +254,8 @@ function ensureRules(items: string[], requiredRules: string[]) {
   ];
 }
 
-function normalizeListWithFallback(items: string[], fallback: string[]) {
-  const normalizedItems = deduplicateList(items);
-
-  return normalizedItems.length ? normalizedItems : fallback;
+function normalizeRuleLines(items: string[]) {
+  return items.map(writeLineValue).filter(Boolean);
 }
 
 function deduplicateList(items: string[]) {

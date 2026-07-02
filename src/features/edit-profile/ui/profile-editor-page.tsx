@@ -1,9 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import {
-  ArrowLeftIcon,
   CalendarIcon,
+  CheckIcon,
   ChevronDownIcon,
   DownloadIcon,
   PlusIcon,
@@ -18,6 +17,8 @@ import {
   useState,
   useTransition,
 } from "react";
+import type { IconType } from "react-icons";
+import { FaGithub, FaGlobe, FaLinkedin, FaTelegramPlane } from "react-icons/fa";
 import { toast } from "sonner";
 
 import {
@@ -43,13 +44,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/shared/ui/dropdown-menu";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/shared/ui/popover";
+import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import {
   Select,
   SelectContent,
@@ -103,25 +106,31 @@ const identityFields: Array<{ key: IdentityKey; label: string } & FieldCopy> = [
   },
 ];
 
-const linkFields: Array<{ key: LinkKey; label: string } & FieldCopy> = [
+const linkFields: Array<
+  { key: LinkKey; label: string; icon: IconType } & FieldCopy
+> = [
   {
     key: "github",
     label: "GitHub",
+    icon: FaGithub,
     placeholder: "https://github.com/username",
   },
   {
     key: "linkedin",
     label: "LinkedIn",
+    icon: FaLinkedin,
     placeholder: "https://linkedin.com/in/username",
   },
   {
     key: "portfolio",
     label: "Портфолио",
+    icon: FaGlobe,
     placeholder: "https://username.dev",
   },
   {
     key: "telegram",
     label: "Telegram",
+    icon: FaTelegramPlane,
     placeholder: "@username",
   },
 ];
@@ -170,7 +179,9 @@ export function ProfileEditorPage({
   initialProfile: ProfileState;
 }) {
   const [profile, setProfile] = useState(() => initialProfile.profile);
-  const [savedProfile, setSavedProfile] = useState(() => initialProfile.profile);
+  const [savedProfile, setSavedProfile] = useState(
+    () => initialProfile.profile,
+  );
   const [isPending, startTransition] = useTransition();
   const profileSnapshot = useMemo(() => serializeProfile(profile), [profile]);
   const savedProfileSnapshot = useMemo(
@@ -267,10 +278,7 @@ export function ProfileEditorPage({
     }));
   }
 
-  function updateSkillCategory(
-    index: number,
-    nextCategory: SkillCategoryForm,
-  ) {
+  function updateSkillCategory(index: number, nextCategory: SkillCategoryForm) {
     setProfile((current) => ({
       ...current,
       skills: current.skills.map((category, categoryIndex) =>
@@ -289,11 +297,7 @@ export function ProfileEditorPage({
   function removeSkillCategory(index: number) {
     setProfile((current) => ({
       ...current,
-      skills: removeAt(
-        current.skills,
-        index,
-        createEmptySkillCategory(),
-      ),
+      skills: removeAt(current.skills, index, createEmptySkillCategory()),
     }));
   }
 
@@ -352,95 +356,94 @@ export function ProfileEditorPage({
     <main className="min-h-dvh bg-background">
       <div
         className={cn(
-          "mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-5 md:px-6 lg:px-8",
-          isDirty && "pb-36 md:pb-32",
+          "mx-auto flex w-full max-w-[760px] flex-col gap-6 px-4 pt-5 pb-28",
+          isDirty && "pb-72",
         )}
       >
-        <Button asChild variant="ghost" size="sm" className="w-fit">
-          <Link href="/">
-            <ArrowLeftIcon data-icon="inline-start" />
-            Генератор
-          </Link>
-        </Button>
-
-        <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4 md:p-5">
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4">
           <div className="flex flex-col gap-2">
-            <h1 className="font-heading text-2xl font-semibold tracking-normal md:text-3xl">
-              Профиль
-            </h1>
+            <h1 className="font-heading text-2xl font-semibold">Профиль</h1>
           </div>
-          <Button type="button" variant="outline" onClick={exportProfileMarkdown}>
-            <DownloadIcon data-icon="inline-start" />
-            Экспорт Markdown
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button type="button" variant="outline">
+                <DownloadIcon data-icon="inline-start" />
+                Экспорт
+                <ChevronDownIcon data-icon="inline-end" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onSelect={() => exportProfileMarkdown()}>
+                Markdown
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </header>
 
         <ProfileSectionCard
           title="Личные данные"
           contentId="profile-identity-content"
         >
-            <FieldGroup className="grid gap-5 md:grid-cols-2">
-              {identityFields.map((field) => (
-                <TextInputField
-                  key={field.key}
-                  id={`identity-${field.key}`}
-                  label={field.label}
-                  placeholder={field.placeholder}
-                  value={profile.identity[field.key]}
-                  onChange={(value) => updateIdentity(field.key, value)}
-                />
-              ))}
-              <WorkFormatField
-                value={profile.identity.workFormat}
-                onChange={(value) => updateIdentity("workFormat", value)}
+          <FieldGroup className="grid gap-5">
+            {identityFields.map((field) => (
+              <TextInputField
+                key={field.key}
+                id={`identity-${field.key}`}
+                label={field.label}
+                placeholder={field.placeholder}
+                value={profile.identity[field.key]}
+                onChange={(value) => updateIdentity(field.key, value)}
               />
-              <LanguagesField
-                value={profile.identity.languages}
-                onChange={(value) => updateIdentity("languages", value)}
-              />
-            </FieldGroup>
+            ))}
+            <WorkFormatField
+              value={profile.identity.workFormat}
+              onChange={(value) => updateIdentity("workFormat", value)}
+            />
+            <LanguagesField
+              value={profile.identity.languages}
+              onChange={(value) => updateIdentity("languages", value)}
+            />
+          </FieldGroup>
         </ProfileSectionCard>
 
-        <ProfileSectionCard
-          title="Ссылки"
-          contentId="profile-links-content"
-        >
-            <FieldGroup className="grid gap-5 md:grid-cols-2">
-              {linkFields.map((field) => (
-                <TextInputField
-                  key={field.key}
-                  id={`link-${field.key}`}
-                  label={field.label}
-                  placeholder={field.placeholder}
-                  value={profile.links[field.key]}
-                  onChange={(value) => updateLink(field.key, value)}
-                />
-              ))}
-            </FieldGroup>
+        <ProfileSectionCard title="Ссылки" contentId="profile-links-content">
+          <FieldGroup className="grid gap-5">
+            {linkFields.map((field) => (
+              <LinkInputField
+                key={field.key}
+                id={`link-${field.key}`}
+                label={field.label}
+                icon={field.icon}
+                placeholder={field.placeholder}
+                value={profile.links[field.key]}
+                onChange={(value) => updateLink(field.key, value)}
+              />
+            ))}
+          </FieldGroup>
         </ProfileSectionCard>
 
         <ProfileSectionCard
           title="Навыки"
           contentId="profile-skills-content"
           action={
-              <Button variant="outline" onClick={addSkillCategory}>
-                <PlusIcon data-icon="inline-start" />
-                Категория
-              </Button>
+            <Button variant="outline" onClick={addSkillCategory}>
+              <PlusIcon data-icon="inline-start" />
+              Категория
+            </Button>
           }
           contentClassName="flex flex-col gap-5"
         >
-            {profile.skills.map((category, categoryIndex) => (
-              <SkillCategoryEditor
-                key={categoryIndex}
-                category={category}
-                index={categoryIndex}
-                onChange={(nextCategory) =>
-                  updateSkillCategory(categoryIndex, nextCategory)
-                }
-                onRemove={() => removeSkillCategory(categoryIndex)}
-              />
-            ))}
+          {profile.skills.map((category, categoryIndex) => (
+            <SkillCategoryEditor
+              key={categoryIndex}
+              category={category}
+              index={categoryIndex}
+              onChange={(nextCategory) =>
+                updateSkillCategory(categoryIndex, nextCategory)
+              }
+              onRemove={() => removeSkillCategory(categoryIndex)}
+            />
+          ))}
         </ProfileSectionCard>
 
         <ProfileSectionCard
@@ -448,26 +451,26 @@ export function ProfileEditorPage({
           contentId="profile-experience-content"
           contentClassName="flex flex-col gap-8"
         >
-            {profile.experience.map((company, companyIndex) => (
-              <CompanyEditor
-                key={companyIndex}
-                company={company}
-                index={companyIndex}
-                onChange={(nextCompany) =>
-                  updateCompany(companyIndex, nextCompany)
-                }
-                onRemove={() => removeCompany(companyIndex)}
-              />
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              className="self-start"
-              onClick={addCompany}
-            >
-              <PlusIcon data-icon="inline-start" />
-              Компания
-            </Button>
+          {profile.experience.map((company, companyIndex) => (
+            <CompanyEditor
+              key={companyIndex}
+              company={company}
+              index={companyIndex}
+              onChange={(nextCompany) =>
+                updateCompany(companyIndex, nextCompany)
+              }
+              onRemove={() => removeCompany(companyIndex)}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="self-start"
+            onClick={addCompany}
+          >
+            <PlusIcon data-icon="inline-start" />
+            Компания
+          </Button>
         </ProfileSectionCard>
 
         <ProfileSectionCard
@@ -475,37 +478,34 @@ export function ProfileEditorPage({
           contentId="profile-projects-content"
           contentClassName="flex flex-col gap-8"
         >
-            {profile.projects.map((project, projectIndex) => (
-              <StandaloneProjectEditor
-                key={projectIndex}
-                project={project}
-                index={projectIndex}
-                onChange={(nextProject) =>
-                  updateStandaloneProject(projectIndex, nextProject)
-                }
-                onRemove={() => removeStandaloneProject(projectIndex)}
-              />
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              className="self-start"
-              onClick={addStandaloneProject}
-            >
-              <PlusIcon data-icon="inline-start" />
-              Проект
-            </Button>
+          {profile.projects.map((project, projectIndex) => (
+            <StandaloneProjectEditor
+              key={projectIndex}
+              project={project}
+              index={projectIndex}
+              onChange={(nextProject) =>
+                updateStandaloneProject(projectIndex, nextProject)
+              }
+              onRemove={() => removeStandaloneProject(projectIndex)}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="self-start"
+            onClick={addStandaloneProject}
+          >
+            <PlusIcon data-icon="inline-start" />
+            Проект
+          </Button>
         </ProfileSectionCard>
-
       </div>
 
       {isDirty && (
-        <div className="fixed inset-x-0 bottom-0 border-t border-border bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
-          <div className="mx-auto flex w-full max-w-6xl flex-col gap-3 px-4 py-4 md:flex-row md:items-center md:justify-between md:px-6 lg:px-8">
-            <p className="text-sm font-medium">
-              Есть несохранённые изменения
-            </p>
-            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <div className="fixed inset-x-0 bottom-[calc(4.8rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
+          <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 py-4">
+            <p className="text-sm font-medium">Есть несохранённые изменения</p>
+            <div className="flex flex-col gap-2">
               <Button
                 type="button"
                 variant="outline"
@@ -545,7 +545,7 @@ function ProfileSectionCard({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Card className={cn(!isOpen && "gap-0")}>
+    <Card className="gap-0">
       <CardHeader>
         <button
           type="button"
@@ -566,7 +566,11 @@ function ProfileSectionCard({
         </button>
         {action && <CardAction>{action}</CardAction>}
       </CardHeader>
-      <CollapsibleContent id={contentId} isOpen={isOpen}>
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-(--card-spacing)"
+      >
         <CardContent className={contentClassName}>{children}</CardContent>
       </CollapsibleContent>
     </Card>
@@ -606,12 +610,7 @@ function SkillCategoryEditor({
   }
 
   return (
-    <section
-      className={cn(
-        "flex flex-col rounded-xl bg-input/20 p-4",
-        isOpen ? "gap-5" : "gap-0",
-      )}
-    >
+    <section className="flex flex-col rounded-xl bg-input/20 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -637,14 +636,23 @@ function SkillCategoryEditor({
             )}
           </span>
         </button>
-        <Button variant="destructive" onClick={onRemove}>
-          <Trash2Icon data-icon="inline-start" />
-          Удалить
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={onRemove}
+          aria-label={`Удалить категорию ${categoryTitle}`}
+        >
+          <Trash2Icon />
         </Button>
       </div>
-      <CollapsibleContent id={contentId} isOpen={isOpen}>
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-5"
+      >
         <div className="pt-1">
-          <FieldGroup className="grid gap-5 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
+          <FieldGroup className="grid gap-5">
             <TextInputField
               id={`skill-category-${index}-name`}
               label="Название категории"
@@ -669,10 +677,12 @@ function SkillCategoryEditor({
 function CollapsibleContent({
   id,
   isOpen,
+  contentClassName,
   children,
 }: {
   id: string;
   isOpen: boolean;
+  contentClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -685,7 +695,7 @@ function CollapsibleContent({
       )}
     >
       <div className="min-h-0 overflow-hidden" inert={!isOpen}>
-        {children}
+        <div className={contentClassName}>{children}</div>
       </div>
     </div>
   );
@@ -745,12 +755,7 @@ function CompanyEditor({
   }
 
   return (
-    <section
-      className={cn(
-        "flex flex-col rounded-xl bg-input/20 p-4",
-        isOpen ? "gap-5" : "gap-0",
-      )}
-    >
+    <section className="flex flex-col rounded-xl bg-input/20 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -776,15 +781,24 @@ function CompanyEditor({
             )}
           </span>
         </button>
-        <Button variant="destructive" onClick={onRemove}>
-          <Trash2Icon data-icon="inline-start" />
-          Удалить
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={onRemove}
+          aria-label={`Удалить компанию ${companyTitle}`}
+        >
+          <Trash2Icon />
         </Button>
       </div>
 
-      <CollapsibleContent id={contentId} isOpen={isOpen}>
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-5"
+      >
         <div className="flex flex-col gap-5 pt-1">
-          <FieldGroup className="grid gap-5 md:grid-cols-2">
+          <FieldGroup className="grid gap-5">
             <TextInputField
               id={`company-${index}-name`}
               label="Компания"
@@ -859,10 +873,7 @@ function ExperienceProjectEditor({
   const projectTitle = project.name || `Проект ${projectIndex + 1}`;
   const projectMeta = [project.role, project.stack].filter(Boolean).join(" · ");
 
-  function updateProjectField(
-    key: keyof ExperienceProjectForm,
-    value: string,
-  ) {
+  function updateProjectField(key: keyof ExperienceProjectForm, value: string) {
     onChange({
       ...project,
       [key]: value,
@@ -872,7 +883,7 @@ function ExperienceProjectEditor({
   return (
     <div className="flex flex-col gap-5">
       <Separator />
-      <div className={cn("flex flex-col", isOpen ? "gap-5" : "gap-0")}>
+      <div className="flex flex-col">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <button
             type="button"
@@ -898,14 +909,23 @@ function ExperienceProjectEditor({
               )}
             </span>
           </button>
-          <Button variant="destructive" size="sm" onClick={onRemove}>
-            <Trash2Icon data-icon="inline-start" />
-            Удалить
+          <Button
+            type="button"
+            variant="destructive"
+            size="icon-sm"
+            onClick={onRemove}
+            aria-label={`Удалить проект ${projectTitle}`}
+          >
+            <Trash2Icon />
           </Button>
         </div>
-        <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <CollapsibleContent
+          id={contentId}
+          isOpen={isOpen}
+          contentClassName="pt-5"
+        >
           <div className="flex flex-col gap-5 pt-1">
-            <FieldGroup className="grid gap-5 md:grid-cols-2">
+            <FieldGroup className="grid gap-5">
               <TextInputField
                 id={`company-${companyIndex}-project-${projectIndex}-name`}
                 label="Название проекта"
@@ -960,10 +980,7 @@ function StandaloneProjectEditor({
   const projectTitle = project.name || `Проект ${index + 1}`;
   const projectMeta = [project.role, project.stack].filter(Boolean).join(" · ");
 
-  function updateProjectField(
-    key: keyof StandaloneProjectForm,
-    value: string,
-  ) {
+  function updateProjectField(key: keyof StandaloneProjectForm, value: string) {
     onChange({
       ...project,
       [key]: value,
@@ -972,10 +989,7 @@ function StandaloneProjectEditor({
 
   return (
     <section
-      className={cn(
-        "flex flex-col rounded-xl bg-input/20 p-4",
-        isOpen ? "gap-5" : "gap-0",
-      )}
+      className="flex flex-col rounded-xl bg-input/20 p-4"
     >
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
@@ -1002,15 +1016,24 @@ function StandaloneProjectEditor({
             )}
           </span>
         </button>
-        <Button variant="destructive" onClick={onRemove}>
-          <Trash2Icon data-icon="inline-start" />
-          Удалить
+        <Button
+          type="button"
+          variant="destructive"
+          size="icon"
+          onClick={onRemove}
+          aria-label={`Удалить проект ${projectTitle}`}
+        >
+          <Trash2Icon />
         </Button>
       </div>
 
-      <CollapsibleContent id={contentId} isOpen={isOpen}>
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-5"
+      >
         <div className="flex flex-col gap-5 pt-1">
-          <FieldGroup className="grid gap-5 md:grid-cols-2">
+          <FieldGroup className="grid gap-5">
             <TextInputField
               id={`standalone-project-${index}-name`}
               label="Название проекта"
@@ -1064,6 +1087,37 @@ function TextInputField({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
+      <Input
+        id={id}
+        placeholder={placeholder}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+    </Field>
+  );
+}
+
+function LinkInputField({
+  id,
+  label,
+  icon: Icon,
+  placeholder,
+  value,
+  onChange,
+}: {
+  id: string;
+  label: string;
+  icon: IconType;
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>
+        <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        {label}
+      </FieldLabel>
       <Input
         id={id}
         placeholder={placeholder}
@@ -1164,7 +1218,7 @@ function TagInputField({
           id={id}
           value={draft}
           placeholder={tags.length ? "" : placeholder}
-          className="h-7 min-w-28 flex-1 bg-transparent px-1 text-base outline-none placeholder:text-muted-foreground md:text-sm"
+          className="h-7 min-w-28 flex-1 bg-transparent px-1 text-sm outline-none placeholder:text-muted-foreground"
           onChange={(event) => handleInputChange(event.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={() => addDraftTag(draft)}
@@ -1379,7 +1433,7 @@ function WorkFormatField({
   }
 
   return (
-    <Field className="md:col-span-2">
+    <Field>
       <FieldLabel>Формат работы</FieldLabel>
       <div className="flex flex-wrap gap-2">
         {workFormatOptions.map((item) => {
@@ -1394,6 +1448,9 @@ function WorkFormatField({
               aria-pressed={isSelected}
               key={item.value}
             >
+              {isSelected && (
+                <CheckIcon data-icon="inline-start" aria-hidden="true" />
+              )}
               {item.label}
             </Button>
           );
@@ -1442,7 +1499,7 @@ function LanguagesField({
   }
 
   return (
-    <Field className="md:col-span-2">
+    <Field>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <FieldLabel>Языки</FieldLabel>
         <Button type="button" variant="outline" size="sm" onClick={addLanguage}>
@@ -1453,13 +1510,10 @@ function LanguagesField({
       <div className="flex flex-col gap-3">
         {languages.map((item, index) => (
           <div
-            className="grid gap-3 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+            className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
             key={index}
           >
             <Field>
-              <FieldLabel htmlFor={`identity-language-${index}`}>
-                Язык
-              </FieldLabel>
               <Select
                 value={item.language || undefined}
                 onValueChange={(nextLanguage) =>
@@ -1469,6 +1523,7 @@ function LanguagesField({
                 <SelectTrigger
                   id={`identity-language-${index}`}
                   className="w-full"
+                  aria-label={`Язык ${index + 1}`}
                 >
                   <SelectValue placeholder="Язык" />
                 </SelectTrigger>
@@ -1484,9 +1539,6 @@ function LanguagesField({
               </Select>
             </Field>
             <Field>
-              <FieldLabel htmlFor={`identity-language-level-${index}`}>
-                Уровень
-              </FieldLabel>
               <Select
                 value={item.level || undefined}
                 onValueChange={(nextLevel) => updateLevel(index, nextLevel)}
@@ -1494,6 +1546,7 @@ function LanguagesField({
                 <SelectTrigger
                   id={`identity-language-level-${index}`}
                   className="w-full"
+                  aria-label={`Уровень языка ${index + 1}`}
                 >
                   <SelectValue placeholder="Уровень" />
                 </SelectTrigger>
@@ -1511,9 +1564,8 @@ function LanguagesField({
             <Button
               type="button"
               variant="destructive"
-              size="sm"
+              size="icon-sm"
               onClick={() => removeLanguage(index)}
-              className="md:self-end"
               aria-label={`Удалить язык ${index + 1}`}
               disabled={languages.length === 1}
             >

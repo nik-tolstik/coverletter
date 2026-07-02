@@ -1,41 +1,17 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Coverletter">
-  <defs>
-    <linearGradient id="bg" x1="72" y1="48" x2="440" y2="464" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#1396b8" />
-      <stop offset="1" stop-color="#0b5575" />
-    </linearGradient>
-    <linearGradient id="paper" x1="172" y1="110" x2="352" y2="408" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#ffffff" />
-      <stop offset="1" stop-color="#e9f8ff" />
-    </linearGradient>
-    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%" color-interpolation-filters="sRGB">
-      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#06364d" flood-opacity=".25" />
-    </filter>
-  </defs>
-
-  <rect width="512" height="512" rx="116" fill="url(#bg)" />
+  <rect width="512" height="512" rx="124" fill="#111827" />
   <path
-    d="M92 338c74 58 160 82 257 72 47-5 81-19 101-36v68c0 21-17 38-38 38H100c-21 0-38-17-38-38v-73c8-14 18-25 30-31Z"
-    fill="#083c57"
-    opacity=".18"
+    d="M344 164a128 128 0 1 0 0 184"
+    fill="none"
+    stroke="#f8fafc"
+    stroke-linecap="round"
+    stroke-width="58"
   />
-
-  <g filter="url(#shadow)">
-    <path d="M152 102h178l64 66v222c0 18-14 32-32 32H152c-18 0-32-14-32-32V134c0-18 14-32 32-32Z" fill="url(#paper)" />
-    <path d="M330 102v52c0 10 8 18 18 18h46l-64-70Z" fill="#cdebf7" />
-    <path d="M330 102v52c0 10 8 18 18 18h46" fill="none" stroke="#90cfe3" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" />
-  </g>
-
-  <path d="M174 210h146" fill="none" stroke="#0b5575" stroke-width="18" stroke-linecap="round" />
-  <path d="M174 260h126" fill="none" stroke="#0b5575" stroke-width="18" stroke-linecap="round" opacity=".82" />
-  <path d="M174 310h88" fill="none" stroke="#0b5575" stroke-width="18" stroke-linecap="round" opacity=".68" />
-
   <path
-    d="M311 318c20-14 46-16 69-4l22 11-12 23c-16 31-50 48-84 41l-33-7 15-31c5-13 13-24 23-33Z"
-    fill="#f5b84b"
+    d="M270 256h126"
+    fill="none"
+    stroke="#2dd4bf"
+    stroke-linecap="round"
+    stroke-width="52"
   />
-  <path d="M281 379c40-35 74-49 119-54" fill="none" stroke="#663f00" stroke-width="12" stroke-linecap="round" opacity=".62" />
-
-  <path d="M360 88l12 34 34 12-34 12-12 34-12-34-34-12 34-12 12-34Z" fill="#ffe8a1" />
-  <path d="M416 198l7 19 19 7-19 7-7 19-7-19-19-7 19-7 7-19Z" fill="#ffe8a1" opacity=".92" />
 </svg>

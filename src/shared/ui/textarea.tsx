@@ -40,7 +40,7 @@ function Textarea({
       data-slot="textarea"
       rows={rows}
       className={cn(
-        "flex max-h-[min(60dvh,32rem)] w-full resize-none overflow-y-hidden rounded-xl bg-input/30 px-3 py-3 text-base transition-colors outline-none placeholder:text-muted-foreground focus-visible:bg-input/50 disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+        "flex max-h-[min(60dvh,32rem)] w-full resize-none overflow-y-hidden rounded-xl bg-input/30 px-3 py-3 text-sm transition-colors outline-none placeholder:text-muted-foreground focus-visible:bg-input/50 disabled:cursor-not-allowed disabled:opacity-50",
         className
       )}
       onInput={(event) => {

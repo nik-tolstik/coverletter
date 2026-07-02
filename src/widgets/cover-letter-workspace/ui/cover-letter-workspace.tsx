@@ -1,11 +1,12 @@
 "use client";
 
-import Link from "next/link";
+import Image from "next/image";
 import {
   ChevronDownIcon,
+  ClipboardPasteIcon,
   CopyIcon,
-  FileTextIcon,
   HistoryIcon,
+  RotateCcwIcon,
   SaveIcon,
   SparklesIcon,
   Trash2Icon,
@@ -56,6 +57,11 @@ import {
   SelectValue,
 } from "@/shared/ui/select";
 import { Textarea } from "@/shared/ui/textarea";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/shared/ui/tooltip";
 import { cn } from "@/shared/lib/utils";
 
 const LANGUAGES = [
@@ -110,6 +116,8 @@ export function CoverLetterWorkspace({
   const [isGenerating, startGenerating] = useTransition();
   const [isSaving, startSaving] = useTransition();
   const [isClearingHistory, startClearingHistory] = useTransition();
+  const hasLetterContent = isGenerating || Boolean(coverLetter);
+  const canGenerateLetter = vacancyText.trim().length > 0;
   const currentSettings = useMemo(
     () => ({
       model,
@@ -239,6 +247,27 @@ export function CoverLetterWorkspace({
     }
   }
 
+  async function pasteVacancyText() {
+    if (!navigator.clipboard?.readText) {
+      toast.error("Буфер обмена недоступен.");
+      return;
+    }
+
+    try {
+      const clipboardText = await navigator.clipboard.readText();
+
+      if (!clipboardText.trim()) {
+        toast.warning("Буфер обмена пуст.");
+        return;
+      }
+
+      setVacancyText(clipboardText);
+      toast.success("Текст вакансии вставлен.");
+    } catch {
+      toast.error("Не удалось прочитать буфер обмена.");
+    }
+  }
+
   function openHistoryItem(item: CoverLetterHistoryItem) {
     setCoverLetter(item.coverLetter);
     setModel(item.model);
@@ -276,10 +305,20 @@ export function CoverLetterWorkspace({
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card p-4 md:p-5">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-heading text-3xl font-bold">Coverletter</h1>
+      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5 px-4 pt-5 pb-28">
+        <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card p-4">
+          <div className="flex min-w-0 items-center gap-3">
+            <Image
+              src="/icon.svg"
+              alt=""
+              width={40}
+              height={40}
+              className="size-10 shrink-0 rounded-xl"
+              priority
+            />
+            <h1 className="min-w-0 font-heading text-2xl font-bold">
+              Coverletter
+            </h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Dialog>
@@ -289,7 +328,7 @@ export function CoverLetterWorkspace({
                   История
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-3xl">
+              <DialogContent className="max-w-[760px]">
                 <DialogHeader>
                   <DialogTitle>История</DialogTitle>
                   <DialogDescription>
@@ -309,40 +348,24 @@ export function CoverLetterWorkspace({
                 </DialogFooter>
               </DialogContent>
             </Dialog>
-            <Button asChild variant="outline">
-              <Link href="/profile">
-                <FileTextIcon data-icon="inline-start" />
-                Профиль
-              </Link>
-            </Button>
           </div>
         </header>
 
-        <section className="grid min-h-[calc(100dvh-9rem)] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.8fr)]">
+        <section className="grid min-h-[calc(100dvh-9rem)] grid-cols-1 gap-5">
           <div className="flex min-h-0 flex-col gap-5">
             <CollapsibleCard
               title="Настройки письма"
               contentId="letter-settings-content"
-              action={
-                <Button
-                  variant="outline"
-                  onClick={saveSettings}
-                  disabled={isSaving || !isSettingsDirty}
-                >
-                  <SaveIcon data-icon="inline-start" />
-                  {isSaving ? "Сохраняю" : "Сохранить"}
-                </Button>
-              }
             >
               <FieldGroup>
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-4">
                   <Field>
                     <FieldLabel htmlFor="openrouter-model">Модель</FieldLabel>
                     <Select value={model} onValueChange={setModel}>
                       <SelectTrigger id="openrouter-model" className="w-full">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent className="min-w-80">
+                      <SelectContent className="w-[calc(100vw-2rem)] max-w-[728px]">
                         {OPENROUTER_MODEL_GROUPS.map((group, groupIndex) => (
                           <SelectGroup key={group.tier}>
                             <SelectLabel>{group.label}</SelectLabel>
@@ -409,18 +432,47 @@ export function CoverLetterWorkspace({
                     isOpen={isRulesOpen}
                     onToggle={() => setIsRulesOpen((current) => !current)}
                   >
-                    <Textarea
-                      id="cover-letter-rules"
-                      aria-label="Правила письма"
-                      placeholder="Одно правило на строку."
-                      value={coverLetterRules}
-                      onChange={(event) =>
-                        setCoverLetterRules(event.target.value)
-                      }
-                    />
+                    <div className="flex flex-col gap-3">
+                      <div className="flex justify-end">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() =>
+                            setCoverLetterRules(
+                              DEFAULT_COVER_LETTER_RULES.join("\n"),
+                            )
+                          }
+                        >
+                          <RotateCcwIcon data-icon="inline-start" />
+                          По умолчанию
+                        </Button>
+                      </div>
+                      <Textarea
+                        id="cover-letter-rules"
+                        aria-label="Правила письма"
+                        placeholder="Одно правило на строку."
+                        value={coverLetterRules}
+                        onChange={(event) =>
+                          setCoverLetterRules(event.target.value)
+                        }
+                      />
+                    </div>
                   </CollapsibleField>
                 </Field>
               </FieldGroup>
+              {isSettingsDirty && (
+                <div className="mt-5 flex justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={saveSettings}
+                    disabled={isSaving}
+                  >
+                    <SaveIcon data-icon="inline-start" />
+                    {isSaving ? "Сохраняю" : "Сохранить"}
+                  </Button>
+                </div>
+              )}
             </CollapsibleCard>
 
             <Card>
@@ -437,10 +489,23 @@ export function CoverLetterWorkspace({
                 />
               </CardContent>
             </Card>
+          </div>
 
+          <div className="flex min-h-0 flex-col gap-5">
             <Card>
               <CardHeader>
                 <CardTitle>Текст вакансии</CardTitle>
+                <CardAction>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={pasteVacancyText}
+                  >
+                    <ClipboardPasteIcon data-icon="inline-start" />
+                    Вставить
+                  </Button>
+                </CardAction>
               </CardHeader>
               <CardContent>
                 <FieldGroup>
@@ -448,46 +513,60 @@ export function CoverLetterWorkspace({
                     <Textarea
                       id="vacancy-text"
                       aria-label="Текст вакансии"
+                      className="max-h-[min(30dvh,16rem)]"
                       placeholder="Вставьте сюда описание вакансии, сообщение рекрутера или требования к роли."
                       value={vacancyText}
                       onChange={(event) => setVacancyText(event.target.value)}
                     />
                   </Field>
-                  <Button onClick={generateLetter} disabled={isGenerating}>
-                    <SparklesIcon data-icon="inline-start" />
-                    {isGenerating ? "Генерирую" : "Сгенерировать"}
-                  </Button>
                 </FieldGroup>
               </CardContent>
             </Card>
-          </div>
 
-          <div className="flex min-h-0 flex-col gap-5">
-            <Card className="min-h-0">
-              <CardHeader>
-                <CardTitle>Письмо</CardTitle>
-                <CardAction>
-                  <Button
-                    variant="outline"
-                    onClick={copyLetter}
-                    disabled={!coverLetter || isGenerating}
+            {hasLetterContent && (
+              <Card className="min-h-0">
+                <CardHeader>
+                  <CardTitle>Письмо</CardTitle>
+                </CardHeader>
+                <CardContent className="min-h-0">
+                  <div
+                    className={cn(
+                      "relative rounded-xl bg-input/20 p-4 text-sm leading-7 whitespace-pre-wrap",
+                      isGenerating ? "min-h-[26dvh]" : "min-h-[40dvh]",
+                      coverLetter && !isGenerating && "pr-14",
+                    )}
                   >
-                    <CopyIcon data-icon="inline-start" />
-                    Копировать
-                  </Button>
-                </CardAction>
-              </CardHeader>
-              <CardContent className="min-h-0">
-                <div className="min-h-[40dvh] rounded-xl bg-input/20 p-4 text-sm leading-7 whitespace-pre-wrap xl:min-h-[48dvh]">
-                  {isGenerating ? (
-                    <GeneratingLetterState />
-                  ) : (
-                    coverLetter ||
-                    "Здесь появится сгенерированное сопроводительное письмо."
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                    {coverLetter && !isGenerating && (
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="icon-sm"
+                            className="absolute top-3 right-3"
+                            aria-label="Копировать письмо"
+                            onClick={copyLetter}
+                          >
+                            <CopyIcon />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Копировать</TooltipContent>
+                      </Tooltip>
+                    )}
+                    {isGenerating ? <GeneratingLetterState /> : coverLetter}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+            <Button
+              size="lg"
+              className="w-full"
+              onClick={generateLetter}
+              disabled={isGenerating || !canGenerateLetter}
+            >
+              <SparklesIcon data-icon="inline-start" />
+              {isGenerating ? "Генерирую" : "Сгенерировать"}
+            </Button>
           </div>
         </section>
       </div>
@@ -511,7 +590,7 @@ function CollapsibleCard({
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Card className={cn(!isOpen && "gap-0")}>
+    <Card className="gap-0">
       <CardHeader>
         <button
           type="button"
@@ -532,7 +611,11 @@ function CollapsibleCard({
         </button>
         {action && <CardAction>{action}</CardAction>}
       </CardHeader>
-      <CollapsibleContent id={contentId} isOpen={isOpen}>
+      <CollapsibleContent
+        id={contentId}
+        isOpen={isOpen}
+        contentClassName="pt-(--card-spacing)"
+      >
         <CardContent>{children}</CardContent>
       </CollapsibleContent>
     </Card>
@@ -553,7 +636,7 @@ function CollapsibleField({
   children: ReactNode;
 }) {
   return (
-    <div className={cn("flex flex-col", isOpen ? "gap-3" : "gap-0")}>
+    <div className="flex flex-col">
       <button
         type="button"
         aria-expanded={isOpen}
@@ -569,7 +652,7 @@ function CollapsibleField({
           )}
         />
       </button>
-      <CollapsibleContent id={id} isOpen={isOpen}>
+      <CollapsibleContent id={id} isOpen={isOpen} contentClassName="pt-3">
         {children}
       </CollapsibleContent>
     </div>
@@ -579,10 +662,12 @@ function CollapsibleField({
 function CollapsibleContent({
   id,
   isOpen,
+  contentClassName,
   children,
 }: {
   id: string;
   isOpen: boolean;
+  contentClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -595,7 +680,7 @@ function CollapsibleContent({
       )}
     >
       <div className="min-h-0 overflow-hidden" inert={!isOpen}>
-        {children}
+        <div className={contentClassName}>{children}</div>
       </div>
     </div>
   );
