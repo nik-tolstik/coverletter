@@ -54,7 +54,6 @@ export type ExperienceCompanyForm = {
   role: string;
   dates: string;
   domain: string;
-  team: string;
   projects: ExperienceProjectForm[];
 };
 
@@ -131,7 +130,6 @@ export function createEmptyCompany(): ExperienceCompanyForm {
     role: "",
     dates: "",
     domain: "",
-    team: "",
     projects: [createEmptyExperienceProject()],
   };
 }
@@ -185,7 +183,7 @@ export function parseMarkdownToProfileForm(markdown: string): ProfileFormState {
     },
     skills: readSkillCategories(skills),
     experience: ensureCompanies(readExperience(readSection(markdown, "Experience"))),
-    projects: ensureStandaloneProjects(readProjects(readSection(markdown, "Projects"))),
+    projects: readProjects(readSection(markdown, "Projects")),
   };
 }
 
@@ -266,7 +264,6 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
       role: writeLineValue(company.role),
       dates: writeLineValue(company.dates),
       domain: writeLineValue(company.domain),
-      team: writeLineValue(company.team),
       projects: ensureExperienceProjects(company.projects).map((project) => ({
         name: writeLineValue(project.name),
         role: writeLineValue(project.role),
@@ -274,7 +271,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
         workDescription: writeTextValue(project.workDescription),
       })),
     })),
-    projects: ensureStandaloneProjects(profile.projects).map((project) => ({
+    projects: profile.projects.map((project) => ({
       name: writeLineValue(project.name),
       role: writeLineValue(project.role),
       stack: writeLineValue(project.stack),
@@ -382,7 +379,6 @@ function readExperience(section: string) {
       role: readLabel(labels, "Role", "Роль") ?? "",
       dates: readLabel(labels, "Dates", "Даты") ?? "",
       domain: readLabel(labels, "Domain", "Домен") ?? "",
-      team: readLabel(labels, "Team", "Команда") ?? "",
       projects: ensureExperienceProjects(
         projectBlocks.map(({ title: projectTitle, body: projectBody }) => {
           const projectLabels = readLabeledBullets(projectBody);
@@ -396,9 +392,8 @@ function readExperience(section: string) {
             readLabeledBlock(
               projectBody,
               "What I did",
-              "Чем занимался",
-              "Work",
               "Описание",
+              "Work",
             ) ||
             buildProjectWorkDescription({
               context,
@@ -434,9 +429,8 @@ function readProjects(section: string) {
       readLabeledBlock(
         body,
         "What I did",
-        "Чем занимался",
-        "Work",
         "Описание",
+        "Work",
       ) ||
       buildProjectWorkDescription({
         context,
@@ -550,7 +544,6 @@ function writeExperience(companies: ExperienceCompanyForm[]) {
 - Role: ${writeLineValue(company.role)}
 - Dates: ${writeLineValue(company.dates)}
 - Domain: ${writeLineValue(company.domain)}
-- Team: ${writeLineValue(company.team)}
 
 ${ensureExperienceProjects(company.projects)
   .map((project) => `#### Project: ${writeHeadingValue(project.name || "Project Name")}
@@ -564,7 +557,7 @@ ${writeLabeledBlock("What I did", project.workDescription)}`)
 }
 
 function writeProjects(projects: StandaloneProjectForm[]) {
-  return ensureStandaloneProjects(projects)
+  return projects
     .map((project) => `### ${writeHeadingValue(project.name || "Project Name")}
 
 - Role: ${writeLineValue(project.role)}
@@ -651,10 +644,6 @@ function ensureCompanies(companies: ExperienceCompanyForm[]) {
 
 function ensureExperienceProjects(projects: ExperienceProjectForm[]) {
   return projects.length ? projects : [createEmptyExperienceProject()];
-}
-
-function ensureStandaloneProjects(projects: StandaloneProjectForm[]) {
-  return projects.length ? projects : [createEmptyStandaloneProject()];
 }
 
 function ensureSkillCategories(categories: SkillCategoryForm[]) {
@@ -779,7 +768,6 @@ function readExperienceJson(
         role: readString(company.role),
         dates: readString(company.dates),
         domain: readString(company.domain),
-        team: readString(company.team),
         projects: readExperienceProjectsJson(company.projects),
       };
     });
@@ -844,7 +832,7 @@ function readProjectsJson(input: unknown, fallback: StandaloneProjectForm[]) {
     };
   });
 
-  return ensureStandaloneProjects(projects);
+  return projects;
 }
 
 function readLegacySkillGroups(input: unknown) {

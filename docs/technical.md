@@ -2,7 +2,7 @@
 
 ## Overview
 
-Coverletter is a Next.js application that generates cover letters from a detailed personal JSON profile. It is developed as a private single-user tool for one person, not as a multi-user SaaS or scalable platform. The profile is the main source of truth for factual AI context: it contains experience, skills, projects, and career context. The user adds a vacancy description, selects a language, adjusts communication style and writing rules, and provides optional extra wishes before generation.
+Coverletter is a Next.js application that generates cover letters from a detailed personal JSON profile. It is developed as a private single-user tool for one person, not as a multi-user SaaS or scalable platform. The profile is the main source of truth for factual AI context: it contains experience, skills, projects, and career context. The user adds a vacancy description, selects a language, chooses a message format, adjusts writing rules, and provides optional extra wishes before generation.
 
 ## Current Stack
 
@@ -24,18 +24,20 @@ Coverletter is a Next.js application that generates cover letters from a detaile
 
 The user profile is stored as structured JSON so form fields round-trip without Markdown parsing issues. Markdown is generated from that JSON only for the AI prompt.
 
-The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, and projects. Communication style and cover letter rules are per-letter generation settings, not profile data.
+The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, and projects. Cover letter rules and message format are per-letter generation settings, not profile data.
 
 Cover letter generation settings:
 
 - `language`: target output language, initially `ru` and `en`.
 - `vacancyText`: job description or recruiter message.
 - `additionalWishes`: free-form instructions from the user.
-- `communicationStyle`: editable style preferences for the current letter.
+- `useEmailFormat`: output format selector value; `true` writes a concise email, `false` writes a Telegram-style direct message.
 - `coverLetterRules`: editable rules for the current letter.
 - `outputFormat`: plain cover letter text for v1.
 
 Saved settings are persisted separately from the profile so the factual profile stays reusable while the current letter workflow can keep drafts and preferences between sessions.
+
+Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, vacancy text, language, message format, additional wishes, and rules used for that generation.
 
 ## Profile Source
 
@@ -58,6 +60,12 @@ Canonical Redis key for saved cover letter settings:
 
 ```txt
 cover-letter-settings:default:json
+```
+
+Canonical Redis key for generated cover letter history:
+
+```txt
+cover-letter-history:default:json
 ```
 
 See [Storage decision](storage.md) for the full persistence plan. This keeps the MVP simple while avoiding a committed personal profile file.
@@ -90,8 +98,8 @@ Folder rules:
 The system prompt should include:
 
 - Markdown generated from the structured JSON profile.
-- Style rules from the current letter settings.
 - Writing rules from the current letter settings.
+- Message format from the current letter settings.
 - Safety rule: do not invent facts, metrics, employers, or achievements.
 - Language/output rules.
 
@@ -100,8 +108,8 @@ The user prompt should include:
 - Vacancy text.
 - Selected language.
 - Additional wishes.
-- Communication style for the current generation.
 - Cover letter rules for the current generation.
+- Message format for the current generation.
 - Any explicit constraints for the current letter.
 
 Generation should be implemented behind a server boundary so provider keys never reach the browser. The initial implementation can use a Route Handler such as `src/app/api/cover-letter/route.ts` or a Server Action, with the provider hidden behind `src/shared/api/ai`.
@@ -164,7 +172,7 @@ Likely first components:
 Primary screen layout:
 
 - `/profile` page for editing the saved profile.
-- Root page with vacancy/settings panel for language, communication style, writing rules, additional wishes, and a saved draft vacancy.
+- Root page with vacancy/settings panel for language, message format, writing rules, additional wishes, and a saved draft vacancy.
 - Generated cover letter preview with copy/regenerate actions.
 - Keep all visible application UI copy in Russian.
 

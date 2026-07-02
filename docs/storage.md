@@ -41,6 +41,12 @@ Store the saved cover letter settings as one JSON value:
 cover-letter-settings:default:json
 ```
 
+Store the generated cover letter history as one bounded JSON list:
+
+```txt
+cover-letter-history:default:json
+```
+
 The JSON value follows `ProfileJsonState`:
 
 ```json
@@ -80,12 +86,33 @@ The saved settings value stores the current letter workflow fields:
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "language": "English",
   "vacancyText": "",
   "additionalWishes": "",
-  "communicationStyle": ["Писать спокойно и по делу."],
+  "useEmailFormat": true,
   "coverLetterRules": ["Вывести только текст письма."]
+}
+```
+
+The generated history value stores the most recent letters and the parameters used to create them:
+
+```json
+{
+  "schemaVersion": 1,
+  "items": [
+    {
+      "id": "uuid",
+      "createdAt": "2026-07-01T12:00:00.000Z",
+      "title": "Frontend Engineer",
+      "coverLetter": "Generated letter text",
+      "vacancyText": "Vacancy text",
+      "language": "English",
+      "additionalWishes": "",
+      "useEmailFormat": true,
+      "coverLetterRules": ["Вывести только текст письма."]
+    }
+  ]
 }
 ```
 

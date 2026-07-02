@@ -2,33 +2,42 @@
 
 import Link from "next/link";
 import {
+  ChevronDownIcon,
   CopyIcon,
   FileTextIcon,
+  HistoryIcon,
   SaveIcon,
-  SendIcon,
-  SlidersHorizontalIcon,
   SparklesIcon,
+  Trash2Icon,
 } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { type ReactNode, useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import {
+  MAX_COVER_LETTER_HISTORY_ITEMS,
+  type CoverLetterHistoryItem,
+} from "@/entities/cover-letter-history";
+import {
   DEFAULT_COVER_LETTER_LANGUAGE,
-  DEFAULT_COMMUNICATION_STYLE,
   DEFAULT_COVER_LETTER_RULES,
+  DEFAULT_OPENROUTER_MODEL,
+  DEFAULT_USE_EMAIL_FORMAT,
+  OPENROUTER_MODEL_OPTIONS,
   type CoverLetterSettingsForm,
 } from "@/entities/cover-letter-settings";
+import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
+import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -36,66 +45,101 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import {
   Select,
   SelectContent,
   SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/shared/ui/select";
-import { Separator } from "@/shared/ui/separator";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/shared/ui/tabs";
 import { Textarea } from "@/shared/ui/textarea";
+import { cn } from "@/shared/lib/utils";
 
 const LANGUAGES = [
   { value: "Russian", label: "Русский" },
   { value: "English", label: "Английский" },
 ];
 
+const MESSAGE_FORMATS = [
+  { value: "email", label: "Email" },
+  { value: "telegram", label: "Telegram" },
+];
+
+const OPENROUTER_MODEL_GROUPS = [
+  { tier: "pro", label: "Pro" },
+  { tier: "balanced", label: "Balanced" },
+  { tier: "free", label: "Free" },
+] as const;
+
+type SavedLetterSettings = Pick<
+  CoverLetterSettingsForm,
+  "model" | "language" | "useEmailFormat" | "coverLetterRules"
+>;
+
 export function CoverLetterWorkspace({
+  initialHistory = [],
   initialSettings,
 }: {
+  initialHistory?: CoverLetterHistoryItem[];
   initialSettings: CoverLetterSettingsForm;
 }) {
-  const [savedSettings, setSavedSettings] = useState(initialSettings);
-  const [vacancyText, setVacancyText] = useState(initialSettings.vacancyText);
+  const [savedSettings, setSavedSettings] = useState(() =>
+    getSavedLetterSettings(initialSettings),
+  );
+  const [history, setHistory] = useState(initialHistory);
+  const [vacancyText, setVacancyText] = useState("");
+  const [model, setModel] = useState(
+    initialSettings.model || DEFAULT_OPENROUTER_MODEL,
+  );
   const [language, setLanguage] = useState(
     initialSettings.language || DEFAULT_COVER_LETTER_LANGUAGE,
   );
-  const [additionalWishes, setAdditionalWishes] = useState(
-    initialSettings.additionalWishes,
-  );
-  const [communicationStyle, setCommunicationStyle] = useState(
-    initialSettings.communicationStyle.join("\n") ||
-      DEFAULT_COMMUNICATION_STYLE.join("\n"),
+  const [additionalWishes, setAdditionalWishes] = useState("");
+  const [useEmailFormat, setUseEmailFormat] = useState(
+    initialSettings.useEmailFormat ?? DEFAULT_USE_EMAIL_FORMAT,
   );
   const [coverLetterRules, setCoverLetterRules] = useState(
     initialSettings.coverLetterRules.join("\n") ||
       DEFAULT_COVER_LETTER_RULES.join("\n"),
   );
+  const [isRulesOpen, setIsRulesOpen] = useState(true);
   const [coverLetter, setCoverLetter] = useState("");
   const [isGenerating, startGenerating] = useTransition();
   const [isSaving, startSaving] = useTransition();
+  const [isClearingHistory, startClearingHistory] = useTransition();
   const currentSettings = useMemo(
     () => ({
+      model,
       language,
       vacancyText,
       additionalWishes,
-      communicationStyle: splitLines(communicationStyle),
+      useEmailFormat,
       coverLetterRules: splitLines(coverLetterRules),
     }),
     [
       additionalWishes,
-      communicationStyle,
       coverLetterRules,
       language,
+      model,
+      useEmailFormat,
       vacancyText,
     ],
   );
+  const currentSavedSettings = useMemo(
+    () => ({
+      model,
+      language,
+      useEmailFormat,
+      coverLetterRules: splitLines(coverLetterRules),
+    }),
+    [coverLetterRules, language, model, useEmailFormat],
+  );
   const isSettingsDirty =
-    serializeSettings(currentSettings) !== serializeSettings(savedSettings);
+    serializeSettings(currentSavedSettings) !==
+    serializeSettings(savedSettings);
 
   function saveSettings() {
     startSaving(async () => {
@@ -106,7 +150,7 @@ export function CoverLetterWorkspace({
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            settings: currentSettings,
+            settings: createSettingsPayload(currentSavedSettings),
           }),
         });
         const data = (await response.json()) as {
@@ -119,11 +163,12 @@ export function CoverLetterWorkspace({
           return;
         }
 
-        setSavedSettings(data.settings);
-        setVacancyText(data.settings.vacancyText);
+        const nextSavedSettings = getSavedLetterSettings(data.settings);
+
+        setSavedSettings(nextSavedSettings);
+        setModel(data.settings.model);
         setLanguage(data.settings.language);
-        setAdditionalWishes(data.settings.additionalWishes);
-        setCommunicationStyle(data.settings.communicationStyle.join("\n"));
+        setUseEmailFormat(data.settings.useEmailFormat);
         setCoverLetterRules(data.settings.coverLetterRules.join("\n"));
         toast.success("Настройки письма сохранены.");
       } catch {
@@ -146,6 +191,8 @@ export function CoverLetterWorkspace({
         });
         const data = (await response.json()) as {
           coverLetter?: string;
+          historyItem?: CoverLetterHistoryItem | null;
+          historySaved?: boolean;
           error?: string;
         };
 
@@ -155,6 +202,23 @@ export function CoverLetterWorkspace({
         }
 
         setCoverLetter(data.coverLetter);
+
+        if (data.historyItem) {
+          const historyItem = data.historyItem;
+
+          setHistory((currentHistory) =>
+            [
+              historyItem,
+              ...currentHistory.filter((item) => item.id !== historyItem.id),
+            ].slice(0, MAX_COVER_LETTER_HISTORY_ITEMS),
+          );
+        }
+
+        if (data.historySaved === false) {
+          toast.warning("Письмо создано, но история не сохранена.");
+          return;
+        }
+
         toast.success("Письмо создано.");
       } catch {
         toast.error("Не удалось создать письмо.");
@@ -175,19 +239,76 @@ export function CoverLetterWorkspace({
     }
   }
 
+  function openHistoryItem(item: CoverLetterHistoryItem) {
+    setCoverLetter(item.coverLetter);
+    setModel(item.model);
+    setVacancyText(item.vacancyText);
+    setLanguage(item.language);
+    setAdditionalWishes(item.additionalWishes);
+    setUseEmailFormat(item.useEmailFormat);
+    setCoverLetterRules(item.coverLetterRules.join("\n"));
+    toast.success("Письмо открыто из истории.");
+  }
+
+  function clearHistory() {
+    startClearingHistory(async () => {
+      try {
+        const response = await fetch("/api/cover-letter-history", {
+          method: "DELETE",
+        });
+        const data = (await response.json()) as {
+          history?: CoverLetterHistoryItem[];
+          error?: string;
+        };
+
+        if (!response.ok || !data.history) {
+          toast.error(data.error ?? "История писем не очищена.");
+          return;
+        }
+
+        setHistory(data.history);
+        toast.success("История писем очищена.");
+      } catch {
+        toast.error("История писем не очищена.");
+      }
+    });
+  }
+
   return (
     <main className="min-h-dvh bg-background">
       <div className="mx-auto flex w-full max-w-[1480px] flex-col gap-5 px-4 py-5 md:px-6 lg:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-4">
+        <header className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-card p-4 md:p-5">
           <div className="flex flex-col gap-1">
-            <h1 className="font-heading text-2xl font-semibold tracking-normal md:text-3xl">
-              Сопроводительное письмо
-            </h1>
-            <p className="max-w-3xl text-sm text-muted-foreground">
-              Создайте письмо на основе сохранённого профиля и текста вакансии.
-            </p>
+            <h1 className="font-heading text-3xl font-bold">Coverletter</h1>
           </div>
           <div className="flex flex-wrap items-center gap-2">
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="outline">
+                  <HistoryIcon data-icon="inline-start" />
+                  История
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-3xl">
+                <DialogHeader>
+                  <DialogTitle>История</DialogTitle>
+                  <DialogDescription>
+                    Последние сгенерированные письма с параметрами генерации.
+                  </DialogDescription>
+                </DialogHeader>
+                <HistoryList history={history} onSelect={openHistoryItem} />
+                <DialogFooter>
+                  <Button
+                    variant="outline"
+                    onClick={clearHistory}
+                    disabled={!history.length || isClearingHistory}
+                  >
+                    <Trash2Icon data-icon="inline-start" />
+                    {isClearingHistory ? "Очищаю" : "Очистить"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
             <Button asChild variant="outline">
               <Link href="/profile">
                 <FileTextIcon data-icon="inline-start" />
@@ -198,67 +319,11 @@ export function CoverLetterWorkspace({
         </header>
 
         <section className="grid min-h-[calc(100dvh-9rem)] grid-cols-1 gap-5 xl:grid-cols-[minmax(0,0.9fr)_minmax(420px,0.8fr)]">
-          <Card>
-            <CardHeader>
-              <CardTitle>Настройки письма</CardTitle>
-              <CardDescription>
-                Язык, пожелания и контекст вакансии для этого письма.
-              </CardDescription>
-              <CardAction className="flex flex-wrap justify-end gap-2">
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline">
-                      <SlidersHorizontalIcon data-icon="inline-start" />
-                      Параметры текста
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent>
-                    <DialogHeader>
-                      <DialogTitle>Параметры текста</DialogTitle>
-                      <DialogDescription>
-                        Стиль и правила, которые применяются к текущему письму.
-                      </DialogDescription>
-                    </DialogHeader>
-                    <FieldGroup>
-                      <Field>
-                        <FieldLabel htmlFor="communication-style">
-                          Стиль коммуникации
-                        </FieldLabel>
-                        <Textarea
-                          id="communication-style"
-                          placeholder="Одно пожелание по стилю на строку."
-                          value={communicationStyle}
-                          onChange={(event) =>
-                            setCommunicationStyle(event.target.value)
-                          }
-                        />
-                      </Field>
-                      <Field>
-                        <FieldLabel htmlFor="cover-letter-rules">
-                          Правила письма
-                        </FieldLabel>
-                        <Textarea
-                          id="cover-letter-rules"
-                          placeholder="Одно правило на строку."
-                          value={coverLetterRules}
-                          onChange={(event) =>
-                            setCoverLetterRules(event.target.value)
-                          }
-                        />
-                      </Field>
-                    </FieldGroup>
-                    <DialogFooter>
-                      <Button
-                        variant="outline"
-                        onClick={saveSettings}
-                        disabled={isSaving || !isSettingsDirty}
-                      >
-                        <SaveIcon data-icon="inline-start" />
-                        {isSaving ? "Сохраняю" : "Сохранить"}
-                      </Button>
-                    </DialogFooter>
-                  </DialogContent>
-                </Dialog>
+          <div className="flex min-h-0 flex-col gap-5">
+            <CollapsibleCard
+              title="Настройки письма"
+              contentId="letter-settings-content"
+              action={
                 <Button
                   variant="outline"
                   onClick={saveSettings}
@@ -267,103 +332,352 @@ export function CoverLetterWorkspace({
                   <SaveIcon data-icon="inline-start" />
                   {isSaving ? "Сохраняю" : "Сохранить"}
                 </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent>
+              }
+            >
               <FieldGroup>
-                <Field>
-                  <FieldLabel htmlFor="language">Язык письма</FieldLabel>
-                  <Select value={language} onValueChange={setLanguage}>
-                    <SelectTrigger id="language" className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectGroup>
-                        {LANGUAGES.map((item) => (
-                          <SelectItem value={item.value} key={item.value}>
-                            {item.label}
-                          </SelectItem>
+                <div className="grid gap-4 md:grid-cols-2">
+                  <Field>
+                    <FieldLabel htmlFor="openrouter-model">Модель</FieldLabel>
+                    <Select value={model} onValueChange={setModel}>
+                      <SelectTrigger id="openrouter-model" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="min-w-80">
+                        {OPENROUTER_MODEL_GROUPS.map((group, groupIndex) => (
+                          <SelectGroup key={group.tier}>
+                            <SelectLabel>{group.label}</SelectLabel>
+                            {OPENROUTER_MODEL_OPTIONS.filter(
+                              (item) => item.tier === group.tier,
+                            ).map((item) => (
+                              <SelectItem value={item.value} key={item.value}>
+                                {item.label} · {item.priceLabel}
+                              </SelectItem>
+                            ))}
+                            {groupIndex <
+                              OPENROUTER_MODEL_GROUPS.length - 1 && (
+                              <SelectSeparator />
+                            )}
+                          </SelectGroup>
                         ))}
-                      </SelectGroup>
-                    </SelectContent>
-                  </Select>
-                </Field>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="language">Язык</FieldLabel>
+                    <Select value={language} onValueChange={setLanguage}>
+                      <SelectTrigger id="language" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {LANGUAGES.map((item) => (
+                            <SelectItem value={item.value} key={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                  <Field>
+                    <FieldLabel htmlFor="message-format">Формат</FieldLabel>
+                    <Select
+                      value={useEmailFormat ? "email" : "telegram"}
+                      onValueChange={(value) =>
+                        setUseEmailFormat(value === "email")
+                      }
+                    >
+                      <SelectTrigger id="message-format" className="w-full">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectGroup>
+                          {MESSAGE_FORMATS.map((item) => (
+                            <SelectItem value={item.value} key={item.value}>
+                              {item.label}
+                            </SelectItem>
+                          ))}
+                        </SelectGroup>
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
                 <Field>
-                  <FieldLabel htmlFor="additional-wishes">
-                    Дополнительные пожелания
-                  </FieldLabel>
-                  <Textarea
-                    id="additional-wishes"
-                    placeholder="Сделать акцент на React, продуктовой разработке и опыте с AI-инструментами."
-                    value={additionalWishes}
-                    onChange={(event) => setAdditionalWishes(event.target.value)}
-                  />
+                  <CollapsibleField
+                    title="Правила письма"
+                    id="cover-letter-rules-panel"
+                    isOpen={isRulesOpen}
+                    onToggle={() => setIsRulesOpen((current) => !current)}
+                  >
+                    <Textarea
+                      id="cover-letter-rules"
+                      aria-label="Правила письма"
+                      placeholder="Одно правило на строку."
+                      value={coverLetterRules}
+                      onChange={(event) =>
+                        setCoverLetterRules(event.target.value)
+                      }
+                    />
+                  </CollapsibleField>
                 </Field>
-                <Field>
-                  <FieldLabel htmlFor="vacancy-text">Текст вакансии</FieldLabel>
-                  <Textarea
-                    id="vacancy-text"
-                    placeholder="Вставьте сюда описание вакансии, сообщение рекрутера или требования к роли."
-                    value={vacancyText}
-                    onChange={(event) => setVacancyText(event.target.value)}
-                  />
-                </Field>
-                <Button onClick={generateLetter} disabled={isGenerating}>
-                  <SparklesIcon data-icon="inline-start" />
-                  {isGenerating ? "Создаю" : "Создать"}
-                </Button>
               </FieldGroup>
-            </CardContent>
-          </Card>
+            </CollapsibleCard>
 
-          <Card className="min-h-0">
-            <CardHeader>
-              <CardTitle>Письмо</CardTitle>
-              <CardDescription>Текстовый результат из OpenRouter.</CardDescription>
-              <CardAction>
-                <Button
-                  variant="outline"
-                  onClick={copyLetter}
-                  disabled={!coverLetter}
-                >
-                  <CopyIcon data-icon="inline-start" />
-                  Копировать
-                </Button>
-              </CardAction>
-            </CardHeader>
-            <CardContent className="min-h-0">
-              <Tabs defaultValue="preview" className="min-h-0">
-                <TabsList>
-                  <TabsTrigger value="preview">
-                    <SendIcon data-icon="inline-start" />
-                    Просмотр
-                  </TabsTrigger>
-                  <TabsTrigger value="raw">Текст</TabsTrigger>
-                </TabsList>
-                <TabsContent value="preview" className="min-h-0">
-                  <div className="min-h-[52dvh] rounded-xl border border-border bg-input/20 p-4 text-sm leading-7 whitespace-pre-wrap xl:min-h-[64dvh]">
-                    {coverLetter ||
-                      "Здесь появится сгенерированное сопроводительное письмо."}
-                  </div>
-                </TabsContent>
-                <TabsContent value="raw" className="min-h-0">
-                  <Textarea
-                    placeholder="Текст письма можно отредактировать после генерации."
-                    value={coverLetter}
-                    onChange={(event) => setCoverLetter(event.target.value)}
-                    className="font-mono text-sm leading-6"
-                  />
-                </TabsContent>
-              </Tabs>
-              <Separator className="mt-4" />
-              <p className="mt-4 text-xs text-muted-foreground">
-                Результат ограничен сохранённым профилем и контекстом вакансии.
-              </p>
-            </CardContent>
-          </Card>
+            <Card>
+              <CardHeader>
+                <CardTitle>Дополнительные пожелания</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Textarea
+                  id="additional-wishes"
+                  aria-label="Дополнительные пожелания"
+                  placeholder="Сделать акцент на React, продуктовой разработке и опыте с AI-инструментами."
+                  value={additionalWishes}
+                  onChange={(event) => setAdditionalWishes(event.target.value)}
+                />
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Текст вакансии</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <FieldGroup>
+                  <Field>
+                    <Textarea
+                      id="vacancy-text"
+                      aria-label="Текст вакансии"
+                      placeholder="Вставьте сюда описание вакансии, сообщение рекрутера или требования к роли."
+                      value={vacancyText}
+                      onChange={(event) => setVacancyText(event.target.value)}
+                    />
+                  </Field>
+                  <Button onClick={generateLetter} disabled={isGenerating}>
+                    <SparklesIcon data-icon="inline-start" />
+                    {isGenerating ? "Генерирую" : "Сгенерировать"}
+                  </Button>
+                </FieldGroup>
+              </CardContent>
+            </Card>
+          </div>
+
+          <div className="flex min-h-0 flex-col gap-5">
+            <Card className="min-h-0">
+              <CardHeader>
+                <CardTitle>Письмо</CardTitle>
+                <CardAction>
+                  <Button
+                    variant="outline"
+                    onClick={copyLetter}
+                    disabled={!coverLetter || isGenerating}
+                  >
+                    <CopyIcon data-icon="inline-start" />
+                    Копировать
+                  </Button>
+                </CardAction>
+              </CardHeader>
+              <CardContent className="min-h-0">
+                <div className="min-h-[40dvh] rounded-xl bg-input/20 p-4 text-sm leading-7 whitespace-pre-wrap xl:min-h-[48dvh]">
+                  {isGenerating ? (
+                    <GeneratingLetterState />
+                  ) : (
+                    coverLetter ||
+                    "Здесь появится сгенерированное сопроводительное письмо."
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
       </div>
     </main>
+  );
+}
+
+function CollapsibleCard({
+  title,
+  contentId,
+  action,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  contentId: string;
+  action?: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <Card className={cn(!isOpen && "gap-0")}>
+      <CardHeader>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="group flex min-w-0 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-1">
+            <CardTitle>{title}</CardTitle>
+          </span>
+        </button>
+        {action && <CardAction>{action}</CardAction>}
+      </CardHeader>
+      <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <CardContent>{children}</CardContent>
+      </CollapsibleContent>
+    </Card>
+  );
+}
+
+function CollapsibleField({
+  title,
+  id,
+  isOpen,
+  onToggle,
+  children,
+}: {
+  title: string;
+  id: string;
+  isOpen: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn("flex flex-col", isOpen ? "gap-3" : "gap-0")}>
+      <button
+        type="button"
+        aria-expanded={isOpen}
+        aria-controls={id}
+        className="flex min-h-10 w-full items-center justify-between gap-3 rounded-lg text-left outline-none transition-colors focus-visible:bg-input/30"
+        onClick={onToggle}
+      >
+        <span className="text-sm leading-snug font-medium">{title}</span>
+        <ChevronDownIcon
+          className={cn(
+            "mr-1 size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+            !isOpen && "-rotate-90",
+          )}
+        />
+      </button>
+      <CollapsibleContent id={id} isOpen={isOpen}>
+        {children}
+      </CollapsibleContent>
+    </div>
+  );
+}
+
+function CollapsibleContent({
+  id,
+  isOpen,
+  children,
+}: {
+  id: string;
+  isOpen: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      aria-hidden={!isOpen}
+      className={cn(
+        "grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+      )}
+    >
+      <div className="min-h-0 overflow-hidden" inert={!isOpen}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function HistoryList({
+  history,
+  onSelect,
+}: {
+  history: CoverLetterHistoryItem[];
+  onSelect: (item: CoverLetterHistoryItem) => void;
+}) {
+  if (!history.length) {
+    return (
+      <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
+        <HistoryIcon className="size-5" />
+        История появится после первой успешной генерации.
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto pr-1">
+      {history.map((item) => (
+        <DialogClose asChild key={item.id}>
+          <button
+            type="button"
+            onClick={() => onSelect(item)}
+            className="flex w-full flex-col gap-2 rounded-xl bg-input/20 p-3 text-left transition-colors hover:bg-input/40 focus-visible:bg-input/40 focus-visible:outline-none"
+          >
+            <span className="flex min-w-0 items-start justify-between gap-3">
+              <span className="line-clamp-2 text-sm font-medium">
+                {item.title}
+              </span>
+              <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                {formatHistoryDate(item.createdAt)}
+              </span>
+            </span>
+            <span className="flex flex-wrap gap-1.5">
+              <Badge variant="outline">{getLanguageLabel(item.language)}</Badge>
+              <Badge variant="outline">
+                {item.useEmailFormat ? "Email" : "Telegram"}
+              </Badge>
+              <Badge variant="outline">{getModelLabel(item.model)}</Badge>
+            </span>
+            <span className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {item.coverLetter}
+            </span>
+          </button>
+        </DialogClose>
+      ))}
+    </div>
+  );
+}
+
+function GeneratingLetterState() {
+  return (
+    <div className="flex min-h-[inherit] flex-col justify-between gap-6 overflow-hidden">
+      <div className="flex items-center gap-3">
+        <span className="relative flex size-10 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <SparklesIcon className="size-5 animate-pulse" />
+          <span className="absolute inset-0 rounded-full bg-primary/15 animate-ping" />
+        </span>
+        <div className="flex flex-col gap-1">
+          <span className="font-medium">Генерирую письмо</span>
+          <span className="text-xs text-muted-foreground">
+            Подбираю факты из профиля под вакансию.
+          </span>
+        </div>
+      </div>
+      <div className="flex flex-col gap-3">
+        <span className="h-4 w-11/12 animate-pulse rounded-full bg-foreground/10" />
+        <span className="h-4 w-10/12 animate-pulse rounded-full bg-foreground/10 [animation-delay:120ms]" />
+        <span className="h-4 w-8/12 animate-pulse rounded-full bg-foreground/10 [animation-delay:240ms]" />
+        <span className="mt-3 h-4 w-full animate-pulse rounded-full bg-foreground/10 [animation-delay:360ms]" />
+        <span className="h-4 w-9/12 animate-pulse rounded-full bg-foreground/10 [animation-delay:480ms]" />
+        <span className="h-4 w-7/12 animate-pulse rounded-full bg-foreground/10 [animation-delay:600ms]" />
+      </div>
+      <div className="h-1.5 overflow-hidden rounded-full bg-foreground/10">
+        <div className="h-full w-1/3 animate-[generation-progress_1.4s_ease-in-out_infinite] rounded-full bg-primary" />
+      </div>
+    </div>
   );
 }
 
@@ -374,6 +688,52 @@ function splitLines(value: string) {
     .filter(Boolean);
 }
 
-function serializeSettings(settings: CoverLetterSettingsForm) {
+function serializeSettings(
+  settings: CoverLetterSettingsForm | SavedLetterSettings,
+) {
   return JSON.stringify(settings);
+}
+
+function getSavedLetterSettings(
+  settings: CoverLetterSettingsForm,
+): SavedLetterSettings {
+  return {
+    model: settings.model || DEFAULT_OPENROUTER_MODEL,
+    language: settings.language || DEFAULT_COVER_LETTER_LANGUAGE,
+    useEmailFormat: settings.useEmailFormat ?? DEFAULT_USE_EMAIL_FORMAT,
+    coverLetterRules: settings.coverLetterRules.length
+      ? settings.coverLetterRules
+      : DEFAULT_COVER_LETTER_RULES,
+  };
+}
+
+function createSettingsPayload(
+  settings: SavedLetterSettings,
+): CoverLetterSettingsForm {
+  return {
+    ...settings,
+    vacancyText: "",
+    additionalWishes: "",
+  };
+}
+
+function getLanguageLabel(language: string) {
+  return LANGUAGES.find((item) => item.value === language)?.label ?? language;
+}
+
+function getModelLabel(model: string) {
+  return (
+    OPENROUTER_MODEL_OPTIONS.find((item) => item.value === model)?.label ??
+    model
+  );
+}
+
+function formatHistoryDate(value: string) {
+  const [date, time] = value.split("T");
+
+  if (!date || !time) {
+    return value;
+  }
+
+  return `${date} ${time.slice(0, 5)} UTC`;
 }

@@ -4,6 +4,8 @@ import Link from "next/link";
 import {
   ArrowLeftIcon,
   CalendarIcon,
+  ChevronDownIcon,
+  DownloadIcon,
   PlusIcon,
   SaveIcon,
   Trash2Icon,
@@ -11,6 +13,7 @@ import {
 } from "lucide-react";
 import {
   type KeyboardEvent,
+  type ReactNode,
   useMemo,
   useState,
   useTransition,
@@ -22,6 +25,7 @@ import {
   createEmptyExperienceProject,
   createEmptySkillCategory,
   createEmptyStandaloneProject,
+  serializeProfileFormToMarkdown,
   type ExperienceCompanyForm,
   type ExperienceProjectForm,
   type ProfileFormState,
@@ -36,7 +40,6 @@ import {
   Card,
   CardAction,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/shared/ui/card";
@@ -223,6 +226,27 @@ export function ProfileEditorPage({
     setProfile(savedProfile);
   }
 
+  function exportProfileMarkdown() {
+    try {
+      const markdown = serializeProfileFormToMarkdown(profile);
+      const blob = new Blob([markdown], {
+        type: "text/markdown;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "coverletter-profile.md";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      toast.success("Markdown профиля экспортирован.");
+    } catch {
+      toast.error("Не удалось экспортировать профиль.");
+    }
+  }
+
   function updateIdentity(key: IdentityKey, value: string) {
     setProfile((current) => ({
       ...current,
@@ -318,10 +342,8 @@ export function ProfileEditorPage({
   function removeStandaloneProject(index: number) {
     setProfile((current) => ({
       ...current,
-      projects: removeAt(
-        current.projects,
-        index,
-        createEmptyStandaloneProject(),
+      projects: current.projects.filter(
+        (_, projectIndex) => projectIndex !== index,
       ),
     }));
   }
@@ -334,26 +356,29 @@ export function ProfileEditorPage({
           isDirty && "pb-36 md:pb-32",
         )}
       >
-        <header className="flex flex-wrap items-center justify-between gap-3">
+        <Button asChild variant="ghost" size="sm" className="w-fit">
+          <Link href="/">
+            <ArrowLeftIcon data-icon="inline-start" />
+            Генератор
+          </Link>
+        </Button>
+
+        <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4 md:p-5">
           <div className="flex flex-col gap-2">
-            <Button asChild variant="ghost" size="sm" className="w-fit">
-              <Link href="/">
-                <ArrowLeftIcon data-icon="inline-start" />
-                Генератор
-              </Link>
-            </Button>
             <h1 className="font-heading text-2xl font-semibold tracking-normal md:text-3xl">
               Профиль
             </h1>
           </div>
+          <Button type="button" variant="outline" onClick={exportProfileMarkdown}>
+            <DownloadIcon data-icon="inline-start" />
+            Экспорт Markdown
+          </Button>
         </header>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Личные данные</CardTitle>
-            <CardDescription>Основные факты о кандидате.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ProfileSectionCard
+          title="Личные данные"
+          contentId="profile-identity-content"
+        >
             <FieldGroup className="grid gap-5 md:grid-cols-2">
               {identityFields.map((field) => (
                 <TextInputField
@@ -374,15 +399,12 @@ export function ProfileEditorPage({
                 onChange={(value) => updateIdentity("languages", value)}
               />
             </FieldGroup>
-          </CardContent>
-        </Card>
+        </ProfileSectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Ссылки</CardTitle>
-            <CardDescription>Публичные ссылки для контекста профиля.</CardDescription>
-          </CardHeader>
-          <CardContent>
+        <ProfileSectionCard
+          title="Ссылки"
+          contentId="profile-links-content"
+        >
             <FieldGroup className="grid gap-5 md:grid-cols-2">
               {linkFields.map((field) => (
                 <TextInputField
@@ -395,23 +417,19 @@ export function ProfileEditorPage({
                 />
               ))}
             </FieldGroup>
-          </CardContent>
-        </Card>
+        </ProfileSectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Навыки</CardTitle>
-            <CardDescription>
-              Группируйте навыки по собственным категориям. Один навык на строку.
-            </CardDescription>
-            <CardAction>
+        <ProfileSectionCard
+          title="Навыки"
+          contentId="profile-skills-content"
+          action={
               <Button variant="outline" onClick={addSkillCategory}>
                 <PlusIcon data-icon="inline-start" />
                 Категория
               </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-5">
+          }
+          contentClassName="flex flex-col gap-5"
+        >
             {profile.skills.map((category, categoryIndex) => (
               <SkillCategoryEditor
                 key={categoryIndex}
@@ -423,23 +441,13 @@ export function ProfileEditorPage({
                 onRemove={() => removeSkillCategory(categoryIndex)}
               />
             ))}
-          </CardContent>
-        </Card>
+        </ProfileSectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Опыт</CardTitle>
-            <CardDescription>
-              Компании и проекты с ролью, стеком и описанием вклада.
-            </CardDescription>
-            <CardAction>
-              <Button variant="outline" onClick={addCompany}>
-                <PlusIcon data-icon="inline-start" />
-                Компания
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-8">
+        <ProfileSectionCard
+          title="Опыт"
+          contentId="profile-experience-content"
+          contentClassName="flex flex-col gap-8"
+        >
             {profile.experience.map((company, companyIndex) => (
               <CompanyEditor
                 key={companyIndex}
@@ -451,23 +459,22 @@ export function ProfileEditorPage({
                 onRemove={() => removeCompany(companyIndex)}
               />
             ))}
-          </CardContent>
-        </Card>
+            <Button
+              type="button"
+              variant="outline"
+              className="self-start"
+              onClick={addCompany}
+            >
+              <PlusIcon data-icon="inline-start" />
+              Компания
+            </Button>
+        </ProfileSectionCard>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Отдельные проекты</CardTitle>
-            <CardDescription>
-              Личные проекты, open-source или важные проекты.
-            </CardDescription>
-            <CardAction>
-              <Button variant="outline" onClick={addStandaloneProject}>
-                <PlusIcon data-icon="inline-start" />
-                Проект
-              </Button>
-            </CardAction>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-8">
+        <ProfileSectionCard
+          title="Отдельные проекты"
+          contentId="profile-projects-content"
+          contentClassName="flex flex-col gap-8"
+        >
             {profile.projects.map((project, projectIndex) => (
               <StandaloneProjectEditor
                 key={projectIndex}
@@ -479,8 +486,16 @@ export function ProfileEditorPage({
                 onRemove={() => removeStandaloneProject(projectIndex)}
               />
             ))}
-          </CardContent>
-        </Card>
+            <Button
+              type="button"
+              variant="outline"
+              className="self-start"
+              onClick={addStandaloneProject}
+            >
+              <PlusIcon data-icon="inline-start" />
+              Проект
+            </Button>
+        </ProfileSectionCard>
 
       </div>
 
@@ -512,6 +527,52 @@ export function ProfileEditorPage({
   );
 }
 
+function ProfileSectionCard({
+  title,
+  contentId,
+  action,
+  contentClassName,
+  defaultOpen = true,
+  children,
+}: {
+  title: string;
+  contentId: string;
+  action?: ReactNode;
+  contentClassName?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <Card className={cn(!isOpen && "gap-0")}>
+      <CardHeader>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="group flex min-w-0 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-1">
+            <CardTitle>{title}</CardTitle>
+          </span>
+        </button>
+        {action && <CardAction>{action}</CardAction>}
+      </CardHeader>
+      <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <CardContent className={contentClassName}>{children}</CardContent>
+      </CollapsibleContent>
+    </Card>
+  );
+}
+
 function SkillCategoryEditor({
   category,
   index,
@@ -523,6 +584,13 @@ function SkillCategoryEditor({
   onChange: (category: SkillCategoryForm) => void;
   onRemove: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const contentId = `skill-category-${index}-content`;
+  const categoryTitle = category.name || `Категория ${index + 1}`;
+  const categoryMeta = category.skills.length
+    ? `${category.skills.length} навыков`
+    : "";
+
   function updateCategoryName(name: string) {
     onChange({
       ...category,
@@ -538,33 +606,88 @@ function SkillCategoryEditor({
   }
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border p-4">
+    <section
+      className={cn(
+        "flex flex-col rounded-xl bg-input/20 p-4",
+        isOpen ? "gap-5" : "gap-0",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-heading text-base font-medium">
-          Категория {index + 1}
-        </h2>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-heading text-base font-medium">
+              {categoryTitle}
+            </span>
+            {categoryMeta && (
+              <span className="truncate text-xs text-muted-foreground">
+                {categoryMeta}
+              </span>
+            )}
+          </span>
+        </button>
         <Button variant="destructive" onClick={onRemove}>
           <Trash2Icon data-icon="inline-start" />
           Удалить
         </Button>
       </div>
-      <FieldGroup className="grid gap-5 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
-        <TextInputField
-          id={`skill-category-${index}-name`}
-          label="Название категории"
-          placeholder="Frontend"
-          value={category.name}
-          onChange={updateCategoryName}
-        />
-        <TagInputField
-          id={`skill-category-${index}-skills`}
-          label="Навыки"
-          placeholder="React"
-          value={category.skills}
-          onChange={updateSkills}
-        />
-      </FieldGroup>
+      <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <div className="pt-1">
+          <FieldGroup className="grid gap-5 md:grid-cols-[minmax(0,0.75fr)_minmax(0,1.25fr)]">
+            <TextInputField
+              id={`skill-category-${index}-name`}
+              label="Название категории"
+              placeholder="Frontend"
+              value={category.name}
+              onChange={updateCategoryName}
+            />
+            <TagInputField
+              id={`skill-category-${index}-skills`}
+              label="Навыки"
+              placeholder="React"
+              value={category.skills}
+              onChange={updateSkills}
+            />
+          </FieldGroup>
+        </div>
+      </CollapsibleContent>
     </section>
+  );
+}
+
+function CollapsibleContent({
+  id,
+  isOpen,
+  children,
+}: {
+  id: string;
+  isOpen: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      id={id}
+      aria-hidden={!isOpen}
+      className={cn(
+        "grid transition-[grid-template-rows,opacity] duration-300 ease-out motion-reduce:transition-none",
+        isOpen ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+      )}
+    >
+      <div className="min-h-0 overflow-hidden" inert={!isOpen}>
+        {children}
+      </div>
+    </div>
   );
 }
 
@@ -579,6 +702,11 @@ function CompanyEditor({
   onChange: (company: ExperienceCompanyForm) => void;
   onRemove: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(true);
+  const contentId = `company-${index}-content`;
+  const companyTitle = company.companyName || `Компания ${index + 1}`;
+  const companyMeta = [company.role, company.dates].filter(Boolean).join(" · ");
+
   function updateCompanyField(
     key: keyof Omit<ExperienceCompanyForm, "projects">,
     value: string,
@@ -617,70 +745,98 @@ function CompanyEditor({
   }
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border p-4">
+    <section
+      className={cn(
+        "flex flex-col rounded-xl bg-input/20 p-4",
+        isOpen ? "gap-5" : "gap-0",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-heading text-base font-medium">
-          Компания {index + 1}
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          <Button variant="outline" onClick={addProject}>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-heading text-base font-medium">
+              {companyTitle}
+            </span>
+            {companyMeta && (
+              <span className="truncate text-xs text-muted-foreground">
+                {companyMeta}
+              </span>
+            )}
+          </span>
+        </button>
+        <Button variant="destructive" onClick={onRemove}>
+          <Trash2Icon data-icon="inline-start" />
+          Удалить
+        </Button>
+      </div>
+
+      <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <div className="flex flex-col gap-5 pt-1">
+          <FieldGroup className="grid gap-5 md:grid-cols-2">
+            <TextInputField
+              id={`company-${index}-name`}
+              label="Компания"
+              placeholder="Acme Corp"
+              value={company.companyName}
+              onChange={(value) => updateCompanyField("companyName", value)}
+            />
+            <TextInputField
+              id={`company-${index}-role`}
+              label="Роль"
+              placeholder="Frontend Engineer"
+              value={company.role}
+              onChange={(value) => updateCompanyField("role", value)}
+            />
+            <CompanyDatesField
+              id={`company-${index}-dates`}
+              label="Даты"
+              value={company.dates}
+              onChange={(value) => updateCompanyField("dates", value)}
+            />
+            <TextInputField
+              id={`company-${index}-domain`}
+              label="Домен"
+              placeholder="FinTech"
+              value={company.domain}
+              onChange={(value) => updateCompanyField("domain", value)}
+            />
+          </FieldGroup>
+
+          {company.projects.map((project, projectIndex) => (
+            <ExperienceProjectEditor
+              key={projectIndex}
+              project={project}
+              companyIndex={index}
+              projectIndex={projectIndex}
+              onChange={(nextProject) =>
+                updateProject(projectIndex, nextProject)
+              }
+              onRemove={() => removeProject(projectIndex)}
+            />
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            className="self-start"
+            onClick={addProject}
+          >
             <PlusIcon data-icon="inline-start" />
             Проект
           </Button>
-          <Button variant="destructive" onClick={onRemove}>
-            <Trash2Icon data-icon="inline-start" />
-            Удалить
-          </Button>
         </div>
-      </div>
-
-      <FieldGroup className="grid gap-5 md:grid-cols-2">
-        <TextInputField
-          id={`company-${index}-name`}
-          label="Компания"
-          placeholder="Acme Corp"
-          value={company.companyName}
-          onChange={(value) => updateCompanyField("companyName", value)}
-        />
-        <TextInputField
-          id={`company-${index}-role`}
-          label="Роль"
-          placeholder="Frontend Engineer"
-          value={company.role}
-          onChange={(value) => updateCompanyField("role", value)}
-        />
-        <CompanyDatesField
-          id={`company-${index}-dates`}
-          label="Даты"
-          value={company.dates}
-          onChange={(value) => updateCompanyField("dates", value)}
-        />
-        <TextInputField
-          id={`company-${index}-domain`}
-          label="Домен"
-          placeholder="FinTech"
-          value={company.domain}
-          onChange={(value) => updateCompanyField("domain", value)}
-        />
-        <TextInputField
-          id={`company-${index}-team`}
-          label="Команда"
-          placeholder="6 разработчиков, дизайнер и продакт"
-          value={company.team}
-          onChange={(value) => updateCompanyField("team", value)}
-        />
-      </FieldGroup>
-
-      {company.projects.map((project, projectIndex) => (
-        <ExperienceProjectEditor
-          key={projectIndex}
-          project={project}
-          companyIndex={index}
-          projectIndex={projectIndex}
-          onChange={(nextProject) => updateProject(projectIndex, nextProject)}
-          onRemove={() => removeProject(projectIndex)}
-        />
-      ))}
+      </CollapsibleContent>
     </section>
   );
 }
@@ -698,6 +854,11 @@ function ExperienceProjectEditor({
   onChange: (project: ExperienceProjectForm) => void;
   onRemove: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = `company-${companyIndex}-project-${projectIndex}-content`;
+  const projectTitle = project.name || `Проект ${projectIndex + 1}`;
+  const projectMeta = [project.role, project.stack].filter(Boolean).join(" · ");
+
   function updateProjectField(
     key: keyof ExperienceProjectForm,
     value: string,
@@ -711,47 +872,74 @@ function ExperienceProjectEditor({
   return (
     <div className="flex flex-col gap-5">
       <Separator />
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="font-heading text-sm font-medium">
-          Проект {projectIndex + 1}
-        </h3>
-        <Button variant="destructive" size="sm" onClick={onRemove}>
-          <Trash2Icon data-icon="inline-start" />
-          Удалить
-        </Button>
+      <div className={cn("flex flex-col", isOpen ? "gap-5" : "gap-0")}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <button
+            type="button"
+            aria-expanded={isOpen}
+            aria-controls={contentId}
+            className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+            onClick={() => setIsOpen((current) => !current)}
+          >
+            <ChevronDownIcon
+              className={cn(
+                "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+                !isOpen && "-rotate-90",
+              )}
+            />
+            <span className="flex min-w-0 flex-col gap-0.5">
+              <span className="truncate font-heading text-sm font-medium">
+                {projectTitle}
+              </span>
+              {projectMeta && (
+                <span className="truncate text-xs text-muted-foreground">
+                  {projectMeta}
+                </span>
+              )}
+            </span>
+          </button>
+          <Button variant="destructive" size="sm" onClick={onRemove}>
+            <Trash2Icon data-icon="inline-start" />
+            Удалить
+          </Button>
+        </div>
+        <CollapsibleContent id={contentId} isOpen={isOpen}>
+          <div className="flex flex-col gap-5 pt-1">
+            <FieldGroup className="grid gap-5 md:grid-cols-2">
+              <TextInputField
+                id={`company-${companyIndex}-project-${projectIndex}-name`}
+                label="Название проекта"
+                placeholder="Личный кабинет"
+                value={project.name}
+                onChange={(value) => updateProjectField("name", value)}
+              />
+              <TextInputField
+                id={`company-${companyIndex}-project-${projectIndex}-role`}
+                label="Роль"
+                placeholder="Frontend Engineer"
+                value={project.role}
+                onChange={(value) => updateProjectField("role", value)}
+              />
+              <TagInputField
+                id={`company-${companyIndex}-project-${projectIndex}-stack`}
+                label="Стек"
+                placeholder="React, TypeScript, GraphQL"
+                value={parseTagValue(project.stack)}
+                onChange={(value) =>
+                  updateProjectField("stack", formatTagValue(value))
+                }
+              />
+            </FieldGroup>
+            <TextAreaField
+              id={`company-${companyIndex}-project-${projectIndex}-work`}
+              label="Описание"
+              placeholder="Опишите свободным текстом, что делали на проекте, за что отвечали и какие результаты важны."
+              value={project.workDescription}
+              onChange={(value) => updateProjectField("workDescription", value)}
+            />
+          </div>
+        </CollapsibleContent>
       </div>
-      <FieldGroup className="grid gap-5 md:grid-cols-2">
-        <TextInputField
-          id={`company-${companyIndex}-project-${projectIndex}-name`}
-          label="Название проекта"
-          placeholder="Личный кабинет"
-          value={project.name}
-          onChange={(value) => updateProjectField("name", value)}
-        />
-        <TextInputField
-          id={`company-${companyIndex}-project-${projectIndex}-role`}
-          label="Роль"
-          placeholder="Frontend Engineer"
-          value={project.role}
-          onChange={(value) => updateProjectField("role", value)}
-        />
-        <TagInputField
-          id={`company-${companyIndex}-project-${projectIndex}-stack`}
-          label="Стек"
-          placeholder="React, TypeScript, GraphQL"
-          value={parseTagValue(project.stack)}
-          onChange={(value) =>
-            updateProjectField("stack", formatTagValue(value))
-          }
-        />
-      </FieldGroup>
-      <TextAreaField
-        id={`company-${companyIndex}-project-${projectIndex}-work`}
-        label="Чем занимался"
-        placeholder="Опишите свободным текстом, что делали на проекте, за что отвечали и какие результаты важны."
-        value={project.workDescription}
-        onChange={(value) => updateProjectField("workDescription", value)}
-      />
     </div>
   );
 }
@@ -767,6 +955,11 @@ function StandaloneProjectEditor({
   onChange: (project: StandaloneProjectForm) => void;
   onRemove: () => void;
 }) {
+  const [isOpen, setIsOpen] = useState(false);
+  const contentId = `standalone-project-${index}-content`;
+  const projectTitle = project.name || `Проект ${index + 1}`;
+  const projectMeta = [project.role, project.stack].filter(Boolean).join(" · ");
+
   function updateProjectField(
     key: keyof StandaloneProjectForm,
     value: string,
@@ -778,49 +971,79 @@ function StandaloneProjectEditor({
   }
 
   return (
-    <section className="flex flex-col gap-5 rounded-xl border border-border p-4">
+    <section
+      className={cn(
+        "flex flex-col rounded-xl bg-input/20 p-4",
+        isOpen ? "gap-5" : "gap-0",
+      )}
+    >
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="font-heading text-base font-medium">
-          Проект {index + 1}
-        </h2>
+        <button
+          type="button"
+          aria-expanded={isOpen}
+          aria-controls={contentId}
+          className="flex min-w-0 flex-1 items-center gap-2 rounded-lg text-left outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
+          onClick={() => setIsOpen((current) => !current)}
+        >
+          <ChevronDownIcon
+            className={cn(
+              "size-4 shrink-0 text-muted-foreground transition-transform duration-300 motion-reduce:transition-none",
+              !isOpen && "-rotate-90",
+            )}
+          />
+          <span className="flex min-w-0 flex-col gap-0.5">
+            <span className="truncate font-heading text-base font-medium">
+              {projectTitle}
+            </span>
+            {projectMeta && (
+              <span className="truncate text-xs text-muted-foreground">
+                {projectMeta}
+              </span>
+            )}
+          </span>
+        </button>
         <Button variant="destructive" onClick={onRemove}>
           <Trash2Icon data-icon="inline-start" />
           Удалить
         </Button>
       </div>
 
-      <FieldGroup className="grid gap-5 md:grid-cols-2">
-        <TextInputField
-          id={`standalone-project-${index}-name`}
-          label="Название проекта"
-          placeholder="Coverletter"
-          value={project.name}
-          onChange={(value) => updateProjectField("name", value)}
-        />
-        <TextInputField
-          id={`standalone-project-${index}-role`}
-          label="Роль"
-          placeholder="Автор проекта"
-          value={project.role}
-          onChange={(value) => updateProjectField("role", value)}
-        />
-        <TagInputField
-          id={`standalone-project-${index}-stack`}
-          label="Стек"
-          placeholder="Next.js, TypeScript, API"
-          value={parseTagValue(project.stack)}
-          onChange={(value) =>
-            updateProjectField("stack", formatTagValue(value))
-          }
-        />
-      </FieldGroup>
-      <TextAreaField
-        id={`standalone-project-${index}-work`}
-        label="Чем занимался"
-        placeholder="Опишите свободным текстом, что сделали, какие решения принимали и почему проект важен."
-        value={project.workDescription}
-        onChange={(value) => updateProjectField("workDescription", value)}
-      />
+      <CollapsibleContent id={contentId} isOpen={isOpen}>
+        <div className="flex flex-col gap-5 pt-1">
+          <FieldGroup className="grid gap-5 md:grid-cols-2">
+            <TextInputField
+              id={`standalone-project-${index}-name`}
+              label="Название проекта"
+              placeholder="Coverletter"
+              value={project.name}
+              onChange={(value) => updateProjectField("name", value)}
+            />
+            <TextInputField
+              id={`standalone-project-${index}-role`}
+              label="Роль"
+              placeholder="Автор проекта"
+              value={project.role}
+              onChange={(value) => updateProjectField("role", value)}
+            />
+            <TagInputField
+              id={`standalone-project-${index}-stack`}
+              label="Стек"
+              placeholder="Next.js, TypeScript, API"
+              value={parseTagValue(project.stack)}
+              onChange={(value) =>
+                updateProjectField("stack", formatTagValue(value))
+              }
+            />
+          </FieldGroup>
+          <TextAreaField
+            id={`standalone-project-${index}-work`}
+            label="Описание"
+            placeholder="Опишите свободным текстом, что сделали, какие решения принимали и почему проект важен."
+            value={project.workDescription}
+            onChange={(value) => updateProjectField("workDescription", value)}
+          />
+        </div>
+      </CollapsibleContent>
     </section>
   );
 }
@@ -919,7 +1142,7 @@ function TagInputField({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <div className="flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-4xl border border-input bg-input/30 px-2 py-1 transition-colors focus-within:border-ring focus-within:ring-[3px] focus-within:ring-ring/50">
+      <div className="flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-4xl bg-input/30 px-2 py-1 transition-colors focus-within:bg-input/50">
         {tags.map((tag, index) => (
           <Badge
             variant="secondary"
@@ -930,7 +1153,7 @@ function TagInputField({
             <button
               type="button"
               aria-label={`Удалить ${tag}`}
-              className="rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-[2px] focus-visible:ring-ring/60"
+              className="rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:opacity-90"
               onClick={() => removeTag(index)}
             >
               <XIcon className="size-3" />
@@ -1169,7 +1392,6 @@ function WorkFormatField({
               size="sm"
               onClick={() => toggleFormat(item.value)}
               aria-pressed={isSelected}
-              className={isSelected ? "ring-2 ring-ring/35" : undefined}
               key={item.value}
             >
               {item.label}

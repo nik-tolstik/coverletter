@@ -1,12 +1,12 @@
 # Coverletter
 
-Coverletter is a personal AI assistant for generating tailored cover letters from a structured JSON profile. It is built as a one-person tool for my own job search, not as a multi-user product or scalable platform. The app keeps my experience, skills, projects, and achievements in one structured profile, then combines it with a vacancy description, language choice, communication style, writing rules, and additional wishes to generate a focused cover letter.
+Coverletter is a personal AI assistant for generating tailored cover letters from a structured JSON profile. It is built as a one-person tool for my own job search, not as a multi-user product or scalable platform. The app keeps my experience, skills, projects, and achievements in one structured profile, then combines it with a vacancy description, language choice, message format, writing rules, and additional wishes to generate a focused cover letter.
 
 ## Product Idea
 
 - Structured JSON profile with name, role, years of experience, social links, skills grouped by custom categories, and project-based experience.
 - Profile and cover letter settings persistence in Upstash Redis through Vercel Marketplace.
-- Cover letter settings: target language, vacancy text, communication style, extra user wishes, and generation rules.
+- Cover letter settings: target language, vacancy text, message format, extra user wishes, and generation rules.
 - AI prompt assembly that generates Markdown from the JSON profile and passes it as system context.
 - OpenRouter as the AI gateway, with `openai/gpt-5.4-mini` as the default generation model.
 - Simple feature folders to keep the personal app understandable.

@@ -8,7 +8,7 @@ The Markdown profile is the main factual source for cover letter generation. It 
 - Prefer project role, stack, and a concrete free-form contribution description over generic responsibility lists.
 - Group skills by practical category and let experience, projects, and outcomes show depth.
 - Keep all claims verifiable from the profile; if something is not in the profile, the generated letter must not claim it.
-- Keep communication style and cover letter rules in the letter settings, not in the profile.
+- Keep cover letter rules and message format in the letter settings, not in the profile.
 
 ## MVP Sections
 
@@ -96,7 +96,6 @@ Company-level experience with project-level detail inside each company.
 - Role: Frontend Engineer
 - Dates: 2022-2025
 - Domain: fintech / ecommerce / SaaS / internal tools
-- Team: product team, 6 engineers
 
 #### Project: Project Name
 
@@ -168,7 +167,6 @@ These can be added after MVP without changing the core prompt contract:
 - Role:
 - Dates:
 - Domain:
-- Team:
 
 #### Project: Project Name
 

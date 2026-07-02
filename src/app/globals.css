@@ -5,9 +5,9 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-    --background: oklch(1 0 0);
+    --background: #f3f3f3;
     --foreground: oklch(0.145 0 0);
-    --card: oklch(1 0 0);
+    --card: #ffffff;
     --card-foreground: oklch(0.145 0 0);
     --popover: oklch(1 0 0);
     --popover-foreground: oklch(0.145 0 0);
@@ -129,4 +129,18 @@
   html {
     @apply font-sans;
     }
+}
+
+@keyframes generation-progress {
+  0% {
+    transform: translateX(-120%);
+  }
+
+  50% {
+    transform: translateX(120%);
+  }
+
+  100% {
+    transform: translateX(360%);
+  }
 }

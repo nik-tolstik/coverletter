@@ -5,6 +5,10 @@ type ChatMessage = {
   content: string;
 };
 
+type ChatCompletionOptions = {
+  model?: string;
+};
+
 type ChatCompletionResponse = {
   choices?: Array<{
     message?: {
@@ -16,7 +20,10 @@ type ChatCompletionResponse = {
   };
 };
 
-export async function createChatCompletion(messages: ChatMessage[]) {
+export async function createChatCompletion(
+  messages: ChatMessage[],
+  options: ChatCompletionOptions = {},
+) {
   const apiKey = process.env.OPENROUTER_API_KEY;
 
   if (!apiKey) {
@@ -27,7 +34,8 @@ export async function createChatCompletion(messages: ChatMessage[]) {
     method: "POST",
     headers: buildHeaders(apiKey),
     body: JSON.stringify({
-      model: process.env.OPENROUTER_MODEL ?? "openai/gpt-5.4-mini",
+      model:
+        options.model ?? process.env.OPENROUTER_MODEL ?? "openai/gpt-5.4-mini",
       messages,
       max_tokens: 2000,
     }),

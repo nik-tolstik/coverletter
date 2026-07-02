@@ -1,6 +1,6 @@
 import {
-  DEFAULT_COMMUNICATION_STYLE,
   DEFAULT_COVER_LETTER_RULES,
+  normalizeOpenRouterModel,
 } from "@/entities/cover-letter-settings";
 
 type ParseResult<T> =
@@ -8,10 +8,11 @@ type ParseResult<T> =
   | { success: false; error: string };
 
 export type GenerateCoverLetterRequest = {
+  model: string;
   vacancyText: string;
   language: string;
   additionalWishes?: string;
-  communicationStyle: string[];
+  useEmailFormat: boolean;
   coverLetterRules: string[];
 };
 
@@ -31,13 +32,11 @@ export const generateCoverLetterRequestSchema = {
     return {
       success: true,
       data: {
+        model: normalizeOpenRouterModel(readOptionalString(input.model)),
         vacancyText,
         language,
         additionalWishes: readOptionalString(input.additionalWishes),
-        communicationStyle: readStringList(
-          input.communicationStyle,
-          DEFAULT_COMMUNICATION_STYLE,
-        ),
+        useEmailFormat: readBoolean(input.useEmailFormat, true),
         coverLetterRules: readStringList(
           input.coverLetterRules,
           DEFAULT_COVER_LETTER_RULES,
@@ -59,6 +58,10 @@ function readRequiredString(value: unknown) {
 
 function readOptionalString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
+}
+
+function readBoolean(value: unknown, fallback: boolean) {
+  return typeof value === "boolean" ? value : fallback;
 }
 
 function readStringList(value: unknown, fallback: string[]) {

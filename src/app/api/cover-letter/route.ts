@@ -1,5 +1,6 @@
 import { generateCoverLetterRequestSchema } from "@/features/generate-cover-letter/model";
 import { generateCoverLetter } from "@/features/generate-cover-letter/server";
+import { addGeneratedCoverLetterToHistory } from "@/entities/cover-letter-history/server";
 import { getProfile } from "@/entities/profile/server";
 
 export const dynamic = "force-dynamic";
@@ -20,8 +21,16 @@ export async function POST(request: Request) {
       ...payload.data,
       profileMarkdown: profile.markdown,
     });
+    const historyResult = await saveGeneratedCoverLetterToHistory({
+      ...payload.data,
+      coverLetter,
+    });
 
-    return Response.json({ coverLetter });
+    return Response.json({
+      coverLetter,
+      historyItem: historyResult.item,
+      historySaved: historyResult.saved,
+    });
   } catch (error) {
     const message =
       error instanceof Error
@@ -29,5 +38,45 @@ export async function POST(request: Request) {
         : "Не удалось создать письмо.";
 
     return Response.json({ error: message }, { status: 502 });
+  }
+}
+
+async function saveGeneratedCoverLetterToHistory({
+  coverLetter,
+  model,
+  vacancyText,
+  language,
+  additionalWishes,
+  useEmailFormat,
+  coverLetterRules,
+}: {
+  coverLetter: string;
+  model: string;
+  vacancyText: string;
+  language: string;
+  additionalWishes?: string;
+  useEmailFormat: boolean;
+  coverLetterRules: string[];
+}) {
+  try {
+    const history = await addGeneratedCoverLetterToHistory({
+      coverLetter,
+      model,
+      vacancyText,
+      language,
+      additionalWishes: additionalWishes ?? "",
+      useEmailFormat,
+      coverLetterRules,
+    });
+
+    return {
+      item: history.item,
+      saved: true,
+    };
+  } catch {
+    return {
+      item: null,
+      saved: false,
+    };
   }
 }

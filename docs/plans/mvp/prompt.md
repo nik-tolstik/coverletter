@@ -2,7 +2,7 @@
 
 Build a Next.js + TypeScript application named Coverletter.
 
-The product generates tailored cover letters from a detailed personal JSON profile. Markdown is generated from the JSON profile and passed to the AI as system context. The user provides communication style and cover letter writing rules in the letter settings, adds a vacancy description, chooses the target language, and can add extra wishes for the current generation.
+The product generates tailored cover letters from a detailed personal JSON profile. Markdown is generated from the JSON profile and passed to the AI as system context. The user provides cover letter writing rules and message format in the letter settings, adds a vacancy description, chooses the target language, and can add extra wishes for the current generation.
 
 This is a single-user personal app for one person. Keep the implementation simple and direct. Do not design it as a multi-user SaaS, team product, or broadly scalable platform.
 
@@ -18,7 +18,7 @@ This is a single-user personal app for one person. Keep the implementation simpl
 - Generation must use the saved profile value.
 - The app must let the user enter vacancy text.
 - The app must let the user choose the output language.
-- The app must let the user edit communication style for the current generation.
+- The app must let the user choose the message format for the current generation.
 - The app must let the user edit cover letter rules for the current generation.
 - The app must let the user add optional extra wishes.
 - The app must generate a cover letter that uses only facts from the profile and vacancy context.
@@ -51,7 +51,7 @@ Use the candidate profile below as the source of truth.
 Do not invent facts, employers, metrics, achievements, or technologies.
 If the vacancy asks for something absent from the profile, connect only adjacent real experience and do not claim direct expertise.
 Write in the requested language.
-Match the communication style from the current letter settings.
+Follow the message format and cover letter rules from the current letter settings.
 Keep the letter concise, specific, and relevant to the vacancy.
 
 Candidate profile:

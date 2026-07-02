@@ -8,61 +8,69 @@ type GenerateCoverLetterInput = GenerateCoverLetterRequest & {
 };
 
 export async function generateCoverLetter({
+  model,
   profileMarkdown,
   vacancyText,
   language,
   additionalWishes,
-  communicationStyle,
+  useEmailFormat,
   coverLetterRules,
 }: GenerateCoverLetterInput) {
-  return createChatCompletion([
-    {
-      role: "system",
-      content: buildSystemPrompt({
-        profileMarkdown,
-        communicationStyle,
-        coverLetterRules,
-      }),
-    },
-    {
-      role: "user",
-      content: buildUserPrompt({
-        language,
-        additionalWishes,
-        vacancyText,
-      }),
-    },
-  ]);
+  return createChatCompletion(
+    [
+      {
+        role: "system",
+        content: buildSystemPrompt({
+          profileMarkdown,
+          language,
+          useEmailFormat,
+          coverLetterRules,
+        }),
+      },
+      {
+        role: "user",
+        content: buildUserPrompt({
+          language,
+          additionalWishes,
+          vacancyText,
+        }),
+      },
+    ],
+    { model },
+  );
 }
 
 function buildSystemPrompt({
   profileMarkdown,
-  communicationStyle,
+  language,
+  useEmailFormat,
   coverLetterRules,
 }: {
   profileMarkdown: string;
-  communicationStyle: string[];
+  language: string;
+  useEmailFormat: boolean;
   coverLetterRules: string[];
 }) {
-  return `You are an assistant that writes precise, honest cover letters.
+  return `You are an assistant that writes precise, honest job application messages.
 
 Use the candidate profile below as the source of truth.
 Do not invent facts, employers, metrics, achievements, or technologies.
 If the vacancy asks for something absent from the profile, connect only adjacent real experience and do not claim direct expertise.
-Write in the requested language.
-Keep the letter concise, specific, and relevant to the vacancy.
+Write the final answer entirely in ${language}.
+The target language has higher priority than the language of the vacancy, candidate profile, cover letter rules, or additional wishes.
+Keep the response concise, specific, and relevant to the vacancy.
 
 Candidate profile:
 
 ${profileMarkdown}
 
-Communication style:
-
-${formatBullets(communicationStyle)}
-
 Cover letter rules:
 
-${formatBullets(coverLetterRules)}`;
+${formatBullets(coverLetterRules)}
+
+Output format:
+
+${formatBullets(getOutputFormatRules(useEmailFormat))}`;
 }
 
 function buildUserPrompt({
@@ -80,9 +88,28 @@ Additional wishes:
 ${additionalWishes || "None"}
 
 Vacancy:
-${vacancyText}`;
+${vacancyText}
+
+Final output language: ${language}
+Write every sentence of the final answer in ${language}.`;
 }
 
 function formatBullets(items: string[]) {
   return items.map((item) => `- ${item}`).join("\n");
+}
+
+function getOutputFormatRules(useEmailFormat: boolean) {
+  if (useEmailFormat) {
+    return [
+      "Write in a concise email cover letter format.",
+      "A natural greeting and short closing are allowed when they fit the vacancy context.",
+      "Do not add a subject line, metadata, or explanations outside the message.",
+    ];
+  }
+
+  return [
+    "Write as a normal Telegram or direct chat message, not as a formal email or classical cover letter.",
+    'Do not use "Dear ...", "Best regards", formal signatures, subject lines, headers, or formal closing blocks.',
+    "Use a direct, natural, human tone with short paragraphs.",
+  ];
 }

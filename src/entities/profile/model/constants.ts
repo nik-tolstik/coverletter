@@ -32,7 +32,6 @@ export const EMPTY_PROFILE_MARKDOWN = `# Profile
 - Role:
 - Dates:
 - Domain:
-- Team:
 
 #### Project: Project Name
 
