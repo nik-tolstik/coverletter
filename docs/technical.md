@@ -41,7 +41,7 @@ Current generation inputs:
 
 Saved settings are persisted separately from the profile so the factual profile stays reusable while the current letter workflow can keep generation preferences between sessions. Vacancy text and additional wishes are not persisted as settings.
 
-Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, vacancy text, language, message format, additional wishes, and rules used for that generation.
+Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, generation duration, vacancy text, language, message format, additional wishes, and rules used for that generation.
 
 ## Profile Source
 

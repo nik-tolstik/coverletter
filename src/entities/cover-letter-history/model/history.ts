@@ -15,6 +15,7 @@ export type CoverLetterHistoryItem = {
   createdAt: string;
   title: string;
   coverLetter: string;
+  generationDurationMs?: number;
   model: string;
   vacancyText: string;
   language: string;
@@ -24,7 +25,7 @@ export type CoverLetterHistoryItem = {
 };
 
 export type CoverLetterHistoryJson = {
-  schemaVersion: 3;
+  schemaVersion: 4;
   items: CoverLetterHistoryItem[];
 };
 
@@ -41,7 +42,7 @@ export type CreateCoverLetterHistoryItemInput = Omit<
 
 export function createDefaultCoverLetterHistoryJson(): CoverLetterHistoryJson {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     items: [],
   };
 }
@@ -58,7 +59,7 @@ export function normalizeCoverLetterHistory(
     : [];
 
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     items: deduplicateHistoryItems(items).slice(
       0,
       MAX_COVER_LETTER_HISTORY_ITEMS,
@@ -79,6 +80,9 @@ export function createCoverLetterHistoryItem(
     createdAt: writeLineValue(input.createdAt),
     title: buildHistoryTitle(vacancyText),
     coverLetter: writeTextValue(input.coverLetter),
+    generationDurationMs: normalizeGenerationDuration(
+      input.generationDurationMs,
+    ),
     model: writeLineValue(input.model) || DEFAULT_HISTORY_MODEL,
     vacancyText,
     language: writeLineValue(input.language),
@@ -93,7 +97,7 @@ export function addCoverLetterHistoryItem(
   item: CoverLetterHistoryItem,
 ): CoverLetterHistoryJson {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     items: deduplicateHistoryItems([item, ...history.items]).slice(
       0,
       MAX_COVER_LETTER_HISTORY_ITEMS,
@@ -121,6 +125,9 @@ function normalizeHistoryItem(input: unknown): CoverLetterHistoryItem | null {
     createdAt,
     title: readString(input.title) || buildHistoryTitle(vacancyText),
     coverLetter,
+    generationDurationMs: normalizeGenerationDuration(
+      input.generationDurationMs,
+    ),
     model: readString(input.model) || DEFAULT_HISTORY_MODEL,
     vacancyText,
     language,
@@ -193,6 +200,12 @@ function isRecord(input: unknown): input is Record<string, unknown> {
 
 function readString(input: unknown) {
   return typeof input === "string" ? writeLineValue(input) : "";
+}
+
+function normalizeGenerationDuration(input: unknown) {
+  return typeof input === "number" && Number.isFinite(input) && input >= 0
+    ? Math.round(input)
+    : undefined;
 }
 
 function readText(input: unknown) {

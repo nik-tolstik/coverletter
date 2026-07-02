@@ -18,13 +18,16 @@ export async function POST(request: Request) {
 
   try {
     const profile = await getProfile();
+    const generationStartedAt = Date.now();
     const coverLetter = await generateCoverLetter({
       ...payload.data,
       profileMarkdown: profile.markdown,
     });
+    const generationDurationMs = Date.now() - generationStartedAt;
     const historyResult = await saveGeneratedCoverLetterToHistory({
       ...payload.data,
       coverLetter,
+      generationDurationMs,
     });
 
     return Response.json({
@@ -44,6 +47,7 @@ export async function POST(request: Request) {
 
 async function saveGeneratedCoverLetterToHistory({
   coverLetter,
+  generationDurationMs,
   model,
   vacancyText,
   language,
@@ -52,6 +56,7 @@ async function saveGeneratedCoverLetterToHistory({
   coverLetterRules,
 }: {
   coverLetter: string;
+  generationDurationMs: number;
   model: string;
   vacancyText: string;
   language: string;
@@ -62,6 +67,7 @@ async function saveGeneratedCoverLetterToHistory({
   try {
     const history = await addGeneratedCoverLetterToHistory({
       coverLetter,
+      generationDurationMs,
       model,
       vacancyText,
       language,

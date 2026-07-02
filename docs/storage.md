@@ -94,17 +94,18 @@ The saved settings value stores reusable generation preferences. Vacancy text an
 }
 ```
 
-The generated history value stores the most recent letters and the parameters used to create them:
+The generated history value stores the most recent letters, generation duration, and the parameters used to create them:
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 4,
   "items": [
     {
       "id": "uuid",
       "createdAt": "2026-07-01T12:00:00.000Z",
       "title": "Frontend Engineer",
       "coverLetter": "Generated letter text",
+      "generationDurationMs": 4200,
       "model": "openai/gpt-5.4-mini",
       "vacancyText": "Vacancy text",
       "language": "English",

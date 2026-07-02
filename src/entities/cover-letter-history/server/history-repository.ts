@@ -51,7 +51,7 @@ export async function addGeneratedCoverLetterToHistory(
     createdAt: new Date().toISOString(),
   });
   const historyJson = addCoverLetterHistoryItem(
-    { schemaVersion: 3, items: currentHistory.history },
+    { schemaVersion: 4, items: currentHistory.history },
     item,
   );
 

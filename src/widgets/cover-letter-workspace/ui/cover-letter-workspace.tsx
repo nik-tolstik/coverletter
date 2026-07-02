@@ -90,8 +90,9 @@ export function CoverLetterWorkspace({
 
             {workspace.hasLetterContent ? (
               <GeneratedLetterCard
+                key={workspace.isGenerating ? "generating" : "ready"}
                 coverLetter={workspace.coverLetter}
-                isGenerating={workspace.isGenerating}
+                loading={workspace.isGenerating}
                 onCopy={workspace.copyLetter}
               />
             ) : null}

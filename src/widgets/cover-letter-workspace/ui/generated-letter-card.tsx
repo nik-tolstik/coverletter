@@ -9,27 +9,29 @@ import { GeneratingLetterState } from "./generating-letter-state";
 
 export function GeneratedLetterCard({
   coverLetter,
-  isGenerating,
+  loading,
   onCopy,
 }: {
   coverLetter: string;
-  isGenerating: boolean;
+  loading: boolean;
   onCopy: () => void;
 }) {
   return (
-    <Card className="min-h-0">
+    <Card className="min-h-0 origin-top will-change-transform motion-safe:animate-[letter-card-in_360ms_cubic-bezier(0.16,1,0.3,1)_both]">
       <CardHeader>
         <CardTitle>Письмо</CardTitle>
       </CardHeader>
       <CardContent className="min-h-0">
         <div
           className={cn(
-            "relative rounded-xl bg-input/20 p-4 text-sm leading-7 whitespace-pre-wrap",
-            isGenerating ? "min-h-[26dvh]" : "min-h-[40dvh]",
-            coverLetter && !isGenerating && "pr-14",
+            "relative rounded-xl text-sm leading-7 whitespace-pre-wrap",
+            loading
+              ? "min-h-[26dvh]"
+              : "min-h-[40dvh] bg-input/20 p-4",
+            coverLetter && !loading && "pr-14",
           )}
         >
-          {coverLetter && !isGenerating && (
+          {coverLetter && !loading && (
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button
@@ -46,7 +48,7 @@ export function GeneratedLetterCard({
               <TooltipContent>Копировать</TooltipContent>
             </Tooltip>
           )}
-          {isGenerating ? <GeneratingLetterState /> : coverLetter}
+          {loading ? <GeneratingLetterState /> : coverLetter}
         </div>
       </CardContent>
     </Card>

@@ -18,7 +18,6 @@ Coverletter is a personal AI assistant for generating tailored cover letters fro
 - [Technical documentation](docs/technical.md)
 - [Markdown profile structure](docs/profile-markdown.md)
 - [Storage decision](docs/storage.md)
-- [Next.js best practices](docs/nextjs-best-practices.md)
 - [Implementation plan](docs/plans/mvp/description.md)
 - [Implementation prompt](docs/plans/mvp/prompt.md)
 - [Work log](docs/plans/mvp/work-log.md)

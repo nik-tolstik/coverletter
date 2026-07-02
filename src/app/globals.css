@@ -131,17 +131,38 @@
     }
 }
 
-@keyframes generation-progress {
-  0% {
-    transform: translateX(-120%);
+@keyframes typing-caret {
+  0%,
+  45% {
+    opacity: 1;
   }
 
-  50% {
-    transform: translateX(120%);
+  46%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes status-gradient {
+  0% {
+    background-position: 160% 50%;
+  }
+
+  62%,
+  100% {
+    background-position: -80% 50%;
+  }
+}
+
+@keyframes letter-card-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
   }
 
   100% {
-    transform: translateX(360%);
+    opacity: 1;
+    transform: scale(1);
   }
 }
 
