@@ -94,7 +94,7 @@ export function GeneratingLetterState() {
       </div>
 
       <div className="flex min-w-0 justify-start px-1">
-        <span className="min-w-0 truncate bg-[linear-gradient(100deg,var(--muted-foreground)_0%,var(--muted-foreground)_38%,color-mix(in_oklch,var(--muted-foreground)_22%,white)_50%,var(--muted-foreground)_62%,var(--muted-foreground)_100%)] bg-clip-text text-xs font-normal text-transparent [background-size:300%_100%] animate-[status-gradient_3.4s_ease-out_infinite]">
+        <span className="min-w-0 truncate bg-[linear-gradient(100deg,var(--muted-foreground)_0%,var(--muted-foreground)_38%,color-mix(in_oklch,var(--muted-foreground)_22%,white)_50%,var(--muted-foreground)_62%,var(--muted-foreground)_100%)] bg-clip-text text-xs font-normal text-transparent [background-size:220%_100%] animate-[status-text-gradient_1.35s_cubic-bezier(0.22,1,0.36,1)_infinite]">
           {status}
         </span>
       </div>

@@ -17,7 +17,7 @@ export async function generateCoverLetter({
   messageFormat,
   coverLetterRules,
 }: GenerateCoverLetterInput) {
-  return createChatCompletion(
+  const completion = await createChatCompletion(
     [
       {
         role: "system",
@@ -39,6 +39,11 @@ export async function generateCoverLetter({
     ],
     { model },
   );
+
+  return {
+    coverLetter: completion.content,
+    model: completion.model,
+  };
 }
 
 function buildSystemPrompt({

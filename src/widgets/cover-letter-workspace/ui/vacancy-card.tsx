@@ -37,7 +37,7 @@ export function VacancyCard({
             <Textarea
               id="vacancy-text"
               aria-label="Текст вакансии"
-              className="max-h-[min(30dvh,16rem)]"
+              className="max-h-[min(30dvh,16rem)] leading-7"
               placeholder="Вставьте сюда описание вакансии, сообщение рекрутера или требования к роли."
               value={value}
               onChange={(event) => onValueChange(event.target.value)}

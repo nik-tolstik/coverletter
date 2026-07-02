@@ -70,7 +70,7 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
       <div className="flex flex-col gap-3">
         {languages.map((item, index) => (
           <div
-            className="grid items-center gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
+            className="grid items-center gap-3 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
             key={index}
           >
             <Field>
@@ -79,9 +79,7 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
                 value={item.language}
                 placeholder="Язык"
                 aria-label={`Язык ${index + 1}`}
-                onChange={(event) =>
-                  updateLanguage(index, event.target.value)
-                }
+                onChange={(event) => updateLanguage(index, event.target.value)}
               />
             </Field>
             <Field>

@@ -19,21 +19,23 @@ export async function POST(request: Request) {
   try {
     const profile = await getProfile();
     const generationStartedAt = Date.now();
-    const coverLetter = await generateCoverLetter({
+    const generation = await generateCoverLetter({
       ...payload.data,
       profileMarkdown: profile.markdown,
     });
     const generationDurationMs = Date.now() - generationStartedAt;
     const historyResult = await saveGeneratedCoverLetterToHistory({
       ...payload.data,
-      coverLetter,
+      coverLetter: generation.coverLetter,
       generationDurationMs,
+      model: generation.model,
     });
 
     return Response.json({
-      coverLetter,
+      coverLetter: generation.coverLetter,
       historyItem: historyResult.item,
       historySaved: historyResult.saved,
+      model: generation.model,
     });
   } catch (error) {
     const message =

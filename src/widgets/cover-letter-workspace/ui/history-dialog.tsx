@@ -253,11 +253,11 @@ function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
       <HistoryCollapsibleCard
         title="Письмо"
         contentId="history-cover-letter-content"
+        action={<HistoryCopyButton value={item.coverLetter} />}
       >
         <HistoryReadonlyText
           value={item.coverLetter}
           className="min-h-72"
-          action={<HistoryCopyButton value={item.coverLetter} />}
         />
       </HistoryCollapsibleCard>
     </div>
@@ -309,7 +309,6 @@ function HistoryCopyButton({ value }: { value: string }) {
           type="button"
           variant="outline"
           size="icon-sm"
-          className="absolute top-3 right-3"
           aria-label="Копировать письмо"
           onClick={handleCopy}
         >

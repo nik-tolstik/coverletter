@@ -1,5 +1,7 @@
 import ClaudeIcon from "@lobehub/icons/es/Claude/components/Color";
+import DeepSeekIcon from "@lobehub/icons/es/DeepSeek/components/Color";
 import MetaIcon from "@lobehub/icons/es/Meta/components/Color";
+import NvidiaIcon from "@lobehub/icons/es/Nvidia/components/Color";
 import OpenAIIcon from "@lobehub/icons/es/OpenAI/components/Mono";
 import QwenIcon from "@lobehub/icons/es/Qwen/components/Color";
 import { SparklesIcon } from "lucide-react";
@@ -27,7 +29,9 @@ type OpenRouterModelOption = (typeof OPENROUTER_MODEL_OPTIONS)[number];
 const MODEL_LOGOS = [
   { prefix: "openai/", icon: OpenAIIcon, className: "text-[#10a37f]" },
   { prefix: "anthropic/", icon: ClaudeIcon },
+  { prefix: "deepseek/", icon: DeepSeekIcon },
   { prefix: "meta-llama/", icon: MetaIcon },
+  { prefix: "nvidia/", icon: NvidiaIcon },
   { prefix: "qwen/", icon: QwenIcon },
 ] as const;
 
