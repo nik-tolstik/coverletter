@@ -9,3 +9,7 @@ export function removeAt<T>(items: T[], index: number, fallback: T): T[] {
 
   return nextItems.length ? nextItems : [fallback];
 }
+
+export function removeAtOrEmpty<T>(items: T[], index: number): T[] {
+  return items.filter((_, currentIndex) => currentIndex !== index);
+}

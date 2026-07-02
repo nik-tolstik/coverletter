@@ -8,6 +8,7 @@ import type {
 } from "@/entities/profile";
 import { Button } from "@/shared/ui/button";
 
+import { EmptySectionState } from "../empty-section-state";
 import { CompanyEditor } from "../editors/company-editor";
 import { ProfileSectionCard } from "../profile-section-card";
 
@@ -38,26 +39,30 @@ export function ExperienceSection({
       contentId="profile-experience-content"
       contentClassName="flex flex-col gap-8"
     >
-      {experience.map((company, companyIndex) => (
-        <CompanyEditor
-          key={companyIndex}
-          company={company}
-          index={companyIndex}
-          onChange={(nextCompany) => onChange(companyIndex, nextCompany)}
-          onRemove={() => onRemove(companyIndex)}
-          onProjectChange={(projectIndex, nextProject) =>
-            onProjectChange(companyIndex, projectIndex, nextProject)
-          }
-          onProjectAdd={() => onProjectAdd(companyIndex)}
-          onProjectRemove={(projectIndex) =>
-            onProjectRemove(companyIndex, projectIndex)
-          }
-        />
-      ))}
+      {experience.length ? (
+        experience.map((company, companyIndex) => (
+          <CompanyEditor
+            key={companyIndex}
+            company={company}
+            index={companyIndex}
+            onChange={(nextCompany) => onChange(companyIndex, nextCompany)}
+            onRemove={() => onRemove(companyIndex)}
+            onProjectChange={(projectIndex, nextProject) =>
+              onProjectChange(companyIndex, projectIndex, nextProject)
+            }
+            onProjectAdd={() => onProjectAdd(companyIndex)}
+            onProjectRemove={(projectIndex) =>
+              onProjectRemove(companyIndex, projectIndex)
+            }
+          />
+        ))
+      ) : (
+        <EmptySectionState />
+      )}
       <Button
         type="button"
         variant="outline"
-        className="self-start"
+        className="w-full"
         onClick={onAdd}
       >
         <PlusIcon data-icon="inline-start" />

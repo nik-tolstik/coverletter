@@ -16,7 +16,7 @@ import {
   type StandaloneProjectForm,
 } from "@/entities/profile";
 
-import { removeAt, serializeProfile } from "./collection";
+import { removeAt, removeAtOrEmpty, serializeProfile } from "./collection";
 
 export type IdentityKey = keyof ProfileFormState["identity"];
 export type LinkKey = keyof ProfileFormState["links"];
@@ -160,7 +160,7 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   function removeSkillCategory(index: number) {
     setProfile((current) => ({
       ...current,
-      skills: removeAt(current.skills, index, createEmptySkillCategory()),
+      skills: removeAtOrEmpty(current.skills, index),
     }));
   }
 
@@ -183,7 +183,7 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   function removeCompany(index: number) {
     setProfile((current) => ({
       ...current,
-      experience: removeAt(current.experience, index, createEmptyCompany()),
+      experience: removeAtOrEmpty(current.experience, index),
     }));
   }
 
@@ -261,7 +261,7 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   function removeStandaloneProject(index: number) {
     setProfile((current) => ({
       ...current,
-      projects: removeAt(current.projects, index, createEmptyStandaloneProject()),
+      projects: removeAtOrEmpty(current.projects, index),
     }));
   }
 

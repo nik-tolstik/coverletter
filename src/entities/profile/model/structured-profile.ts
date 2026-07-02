@@ -182,7 +182,7 @@ export function parseMarkdownToProfileForm(markdown: string): ProfileFormState {
       telegram: links["Telegram"] ?? fallback.links.telegram,
     },
     skills: readSkillCategories(skills),
-    experience: ensureCompanies(readExperience(readSection(markdown, "Experience"))),
+    experience: readExperience(readSection(markdown, "Experience")),
     projects: readProjects(readSection(markdown, "Projects")),
   };
 }
@@ -259,7 +259,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
       telegram: writeLineValue(profile.links.telegram),
     },
     skills: normalizeSkillCategories(profile.skills),
-    experience: ensureCompanies(profile.experience).map((company) => ({
+    experience: profile.experience.map((company) => ({
       companyName: writeLineValue(company.companyName),
       role: writeLineValue(company.role),
       dates: writeLineValue(company.dates),
@@ -464,7 +464,7 @@ function readSkillCategories(section: string) {
     ];
   }
 
-  return ensureSkillCategories(categories);
+  return categories;
 }
 
 function readNestedBullets(section: string, ...labels: string[]) {
@@ -535,7 +535,7 @@ function splitHeadingBlocks(section: string, level: 3 | 4) {
 }
 
 function writeExperience(companies: ExperienceCompanyForm[]) {
-  return ensureCompanies(companies)
+  return companies
     .map((company) => {
       const companyName = company.companyName || "Company Name";
 
@@ -567,7 +567,7 @@ ${writeLabeledBlock("What I did", project.workDescription)}`)
 }
 
 function writeSkillCategories(categories: SkillCategoryForm[]) {
-  return ensureSkillCategories(categories)
+  return categories
     .map((category) => `### ${writeHeadingValue(category.name || "Category Name", "Category Name")}
 
 ${writeBullets(category.skills)}`)
@@ -619,7 +619,7 @@ function normalizeSkillCategories(categories: SkillCategoryForm[]) {
       skills: ensureList(category.skills),
     }));
 
-  return ensureSkillCategories(normalizedCategories);
+  return normalizedCategories;
 }
 
 function writeLineValue(value: string) {
@@ -638,16 +638,8 @@ function ensureList(items: string[]) {
   return items.length ? items : [""];
 }
 
-function ensureCompanies(companies: ExperienceCompanyForm[]) {
-  return companies.length ? companies : [createEmptyCompany()];
-}
-
 function ensureExperienceProjects(projects: ExperienceProjectForm[]) {
   return projects.length ? projects : [createEmptyExperienceProject()];
-}
-
-function ensureSkillCategories(categories: SkillCategoryForm[]) {
-  return categories.length ? categories : [createEmptySkillCategory()];
 }
 
 function readDelimitedValues(value: string) {
@@ -734,7 +726,7 @@ function readSkillCategoriesJson(
         (category) => category.name || normalizeList(category.skills).length,
       );
 
-    return ensureSkillCategories(categories);
+    return categories;
   }
 
   const legacySkills = readLegacySkillGroups(input);
@@ -772,7 +764,7 @@ function readExperienceJson(
       };
     });
 
-  return ensureCompanies(companies);
+  return companies;
 }
 
 function readExperienceProjectsJson(input: unknown) {

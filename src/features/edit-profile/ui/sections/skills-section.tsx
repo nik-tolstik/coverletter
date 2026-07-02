@@ -5,6 +5,7 @@ import { PlusIcon } from "lucide-react";
 import type { SkillCategoryForm } from "@/entities/profile";
 import { Button } from "@/shared/ui/button";
 
+import { EmptySectionState } from "../empty-section-state";
 import { SkillCategoryEditor } from "../editors/skill-category-editor";
 import { ProfileSectionCard } from "../profile-section-card";
 
@@ -23,23 +24,30 @@ export function SkillsSection({
     <ProfileSectionCard
       title="Навыки"
       contentId="profile-skills-content"
-      action={
-        <Button type="button" variant="outline" onClick={onAdd}>
-          <PlusIcon data-icon="inline-start" />
-          Добавить категорию
-        </Button>
-      }
       contentClassName="flex flex-col gap-5"
     >
-      {skills.map((category, categoryIndex) => (
-        <SkillCategoryEditor
-          key={categoryIndex}
-          category={category}
-          index={categoryIndex}
-          onChange={(nextCategory) => onChange(categoryIndex, nextCategory)}
-          onRemove={() => onRemove(categoryIndex)}
-        />
-      ))}
+      {skills.length ? (
+        skills.map((category, categoryIndex) => (
+          <SkillCategoryEditor
+            key={categoryIndex}
+            category={category}
+            index={categoryIndex}
+            onChange={(nextCategory) => onChange(categoryIndex, nextCategory)}
+            onRemove={() => onRemove(categoryIndex)}
+          />
+        ))
+      ) : (
+        <EmptySectionState />
+      )}
+      <Button
+        type="button"
+        variant="outline"
+        className="self-end"
+        onClick={onAdd}
+      >
+        <PlusIcon data-icon="inline-start" />
+        Добавить категорию
+      </Button>
     </ProfileSectionCard>
   );
 }

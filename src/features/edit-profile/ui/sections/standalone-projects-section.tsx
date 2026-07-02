@@ -5,6 +5,7 @@ import { PlusIcon } from "lucide-react";
 import type { StandaloneProjectForm } from "@/entities/profile";
 import { Button } from "@/shared/ui/button";
 
+import { EmptySectionState } from "../empty-section-state";
 import { StandaloneProjectEditor } from "../editors/standalone-project-editor";
 import { ProfileSectionCard } from "../profile-section-card";
 
@@ -25,19 +26,23 @@ export function StandaloneProjectsSection({
       contentId="profile-projects-content"
       contentClassName="flex flex-col gap-8"
     >
-      {projects.map((project, projectIndex) => (
-        <StandaloneProjectEditor
-          key={projectIndex}
-          project={project}
-          index={projectIndex}
-          onChange={(nextProject) => onChange(projectIndex, nextProject)}
-          onRemove={() => onRemove(projectIndex)}
-        />
-      ))}
+      {projects.length ? (
+        projects.map((project, projectIndex) => (
+          <StandaloneProjectEditor
+            key={projectIndex}
+            project={project}
+            index={projectIndex}
+            onChange={(nextProject) => onChange(projectIndex, nextProject)}
+            onRemove={() => onRemove(projectIndex)}
+          />
+        ))
+      ) : (
+        <EmptySectionState />
+      )}
       <Button
         type="button"
         variant="outline"
-        className="self-start"
+        className="w-full"
         onClick={onAdd}
       >
         <PlusIcon data-icon="inline-start" />
