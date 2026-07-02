@@ -1,6 +1,7 @@
 import "server-only";
 
 import type { GenerateCoverLetterRequest } from "@/features/generate-cover-letter/model";
+import type { MessageFormat } from "@/entities/cover-letter-settings";
 import { createChatCompletion } from "@/shared/api/openrouter";
 
 type GenerateCoverLetterInput = GenerateCoverLetterRequest & {
@@ -13,7 +14,7 @@ export async function generateCoverLetter({
   vacancyText,
   language,
   additionalWishes,
-  useEmailFormat,
+  messageFormat,
   coverLetterRules,
 }: GenerateCoverLetterInput) {
   return createChatCompletion(
@@ -23,7 +24,7 @@ export async function generateCoverLetter({
         content: buildSystemPrompt({
           profileMarkdown,
           language,
-          useEmailFormat,
+          messageFormat,
           coverLetterRules,
         }),
       },
@@ -43,12 +44,12 @@ export async function generateCoverLetter({
 function buildSystemPrompt({
   profileMarkdown,
   language,
-  useEmailFormat,
+  messageFormat,
   coverLetterRules,
 }: {
   profileMarkdown: string;
   language: string;
-  useEmailFormat: boolean;
+  messageFormat: MessageFormat;
   coverLetterRules: string[];
 }) {
   return `You are an assistant that writes precise, honest job application messages.
@@ -70,7 +71,7 @@ ${formatLines(coverLetterRules)}
 
 Output format:
 
-${formatBullets(getOutputFormatRules(useEmailFormat))}`;
+${formatBullets(getOutputFormatRules(messageFormat))}`;
 }
 
 function buildUserPrompt({
@@ -102,8 +103,8 @@ function formatLines(items: string[]) {
   return items.join("\n");
 }
 
-function getOutputFormatRules(useEmailFormat: boolean) {
-  if (useEmailFormat) {
+function getOutputFormatRules(messageFormat: MessageFormat) {
+  if (messageFormat === "email") {
     return [
       "Write in a concise email cover letter format.",
       "A natural greeting and short closing are allowed when they fit the vacancy context.",

@@ -52,6 +52,10 @@ import {
 } from "@/shared/ui/dropdown-menu";
 import { Field, FieldGroup, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
+import {
+  LANGUAGE_OPTIONS,
+  LanguageSelect,
+} from "@/shared/ui/language-select";
 import { Popover, PopoverContent, PopoverTrigger } from "@/shared/ui/popover";
 import {
   Select,
@@ -107,30 +111,39 @@ const identityFields: Array<{ key: IdentityKey; label: string } & FieldCopy> = [
 ];
 
 const linkFields: Array<
-  { key: LinkKey; label: string; icon: IconType } & FieldCopy
+  {
+    key: LinkKey;
+    label: string;
+    icon: IconType;
+    iconClassName: string;
+  } & FieldCopy
 > = [
   {
     key: "github",
     label: "GitHub",
     icon: FaGithub,
+    iconClassName: "text-[#181717] dark:text-white",
     placeholder: "https://github.com/username",
   },
   {
     key: "linkedin",
     label: "LinkedIn",
     icon: FaLinkedin,
+    iconClassName: "text-[#0a66c2]",
     placeholder: "https://linkedin.com/in/username",
   },
   {
     key: "portfolio",
     label: "Портфолио",
     icon: FaGlobe,
+    iconClassName: "text-[#14b8a6]",
     placeholder: "https://username.dev",
   },
   {
     key: "telegram",
     label: "Telegram",
     icon: FaTelegramPlane,
+    iconClassName: "text-[#26a5e4]",
     placeholder: "@username",
   },
 ];
@@ -139,11 +152,6 @@ const workFormatOptions = [
   { value: "Remote", label: "Удалённо" },
   { value: "Hybrid", label: "Гибрид" },
   { value: "Office", label: "Офис" },
-];
-
-const languageOptions = [
-  { value: "Russian", label: "Русский" },
-  { value: "English", label: "Английский" },
 ];
 
 const languageLevelOptions = [
@@ -362,7 +370,7 @@ export function ProfileEditorPage({
       >
         <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4">
           <div className="flex flex-col gap-2">
-            <h1 className="font-heading text-2xl font-semibold">Профиль</h1>
+            <h1 className="font-heading text-xl font-semibold">Профиль</h1>
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -414,6 +422,7 @@ export function ProfileEditorPage({
                 id={`link-${field.key}`}
                 label={field.label}
                 icon={field.icon}
+                iconClassName={field.iconClassName}
                 placeholder={field.placeholder}
                 value={profile.links[field.key]}
                 onChange={(value) => updateLink(field.key, value)}
@@ -988,9 +997,7 @@ function StandaloneProjectEditor({
   }
 
   return (
-    <section
-      className="flex flex-col rounded-xl bg-input/20 p-4"
-    >
+    <section className="flex flex-col rounded-xl bg-input/20 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <button
           type="button"
@@ -1101,6 +1108,7 @@ function LinkInputField({
   id,
   label,
   icon: Icon,
+  iconClassName,
   placeholder,
   value,
   onChange,
@@ -1108,6 +1116,7 @@ function LinkInputField({
   id: string;
   label: string;
   icon: IconType;
+  iconClassName: string;
   placeholder: string;
   value: string;
   onChange: (value: string) => void;
@@ -1115,7 +1124,10 @@ function LinkInputField({
   return (
     <Field>
       <FieldLabel htmlFor={id}>
-        <Icon aria-hidden="true" className="size-4 shrink-0 text-muted-foreground" />
+        <Icon
+          aria-hidden="true"
+          className={cn("size-4 shrink-0", iconClassName)}
+        />
         {label}
       </FieldLabel>
       <Input
@@ -1514,29 +1526,14 @@ function LanguagesField({
             key={index}
           >
             <Field>
-              <Select
+              <LanguageSelect
+                id={`identity-language-${index}`}
                 value={item.language || undefined}
                 onValueChange={(nextLanguage) =>
                   updateLanguage(index, nextLanguage)
                 }
-              >
-                <SelectTrigger
-                  id={`identity-language-${index}`}
-                  className="w-full"
-                  aria-label={`Язык ${index + 1}`}
-                >
-                  <SelectValue placeholder="Язык" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectGroup>
-                    {languageOptions.map((option) => (
-                      <SelectItem value={option.value} key={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
+                ariaLabel={`Язык ${index + 1}`}
+              />
             </Field>
             <Field>
               <Select
@@ -1851,7 +1848,7 @@ function parseLanguagesValue(value: string): LanguageEntry[] {
 }
 
 function parseLanguageEntry(value: string): LanguageEntry {
-  const language = languageOptions.find((item) =>
+  const language = LANGUAGE_OPTIONS.find((item) =>
     value.toLowerCase().includes(item.value.toLowerCase()),
   )?.value;
   const level = languageLevelOptions.find((item) =>

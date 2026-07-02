@@ -144,3 +144,31 @@
     transform: translateX(360%);
   }
 }
+
+@keyframes dialog-content-in {
+  0% {
+    opacity: 0;
+    transform: translate3d(-50%, 2rem, 0) scale(0.98);
+    filter: blur(3px);
+  }
+
+  100% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes dialog-content-out {
+  0% {
+    opacity: 1;
+    transform: translate3d(-50%, 0, 0) scale(1);
+    filter: blur(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translate3d(-50%, 1.25rem, 0) scale(0.985);
+    filter: blur(2px);
+  }
+}

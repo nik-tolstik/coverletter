@@ -26,16 +26,20 @@ The user profile is stored as structured JSON so form fields round-trip without 
 
 The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, and projects. Cover letter rules and message format are per-letter generation settings, not profile data.
 
-Cover letter generation settings:
+Persisted cover letter settings:
 
+- `model`: OpenRouter model used for generation.
 - `language`: target output language, initially `ru` and `en`.
+- `messageFormat`: output format selector value, either `email` or `telegram`.
+- `coverLetterRules`: editable rules for the current letter.
+
+Current generation inputs:
+
 - `vacancyText`: job description or recruiter message.
 - `additionalWishes`: free-form instructions from the user.
-- `useEmailFormat`: output format selector value; `true` writes a concise email, `false` writes a Telegram-style direct message.
-- `coverLetterRules`: editable rules for the current letter.
 - `outputFormat`: plain cover letter text for v1.
 
-Saved settings are persisted separately from the profile so the factual profile stays reusable while the current letter workflow can keep drafts and preferences between sessions.
+Saved settings are persisted separately from the profile so the factual profile stays reusable while the current letter workflow can keep generation preferences between sessions. Vacancy text and additional wishes are not persisted as settings.
 
 Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, vacancy text, language, message format, additional wishes, and rules used for that generation.
 
@@ -172,7 +176,7 @@ Likely first components:
 Primary screen layout:
 
 - `/profile` page for editing the saved profile.
-- Root page with vacancy/settings panel for language, message format, writing rules, additional wishes, and a saved draft vacancy.
+- Root page with vacancy/settings panel for language, message format, writing rules, additional wishes, and the current vacancy text.
 - Generated cover letter preview with copy/regenerate actions.
 - Keep all visible application UI copy in Russian.
 

@@ -1,6 +1,7 @@
 import { generateCoverLetterRequestSchema } from "@/features/generate-cover-letter/model";
 import { generateCoverLetter } from "@/features/generate-cover-letter/server";
 import { addGeneratedCoverLetterToHistory } from "@/entities/cover-letter-history/server";
+import type { MessageFormat } from "@/entities/cover-letter-settings";
 import { getProfile } from "@/entities/profile/server";
 
 export const dynamic = "force-dynamic";
@@ -47,7 +48,7 @@ async function saveGeneratedCoverLetterToHistory({
   vacancyText,
   language,
   additionalWishes,
-  useEmailFormat,
+  messageFormat,
   coverLetterRules,
 }: {
   coverLetter: string;
@@ -55,7 +56,7 @@ async function saveGeneratedCoverLetterToHistory({
   vacancyText: string;
   language: string;
   additionalWishes?: string;
-  useEmailFormat: boolean;
+  messageFormat: MessageFormat;
   coverLetterRules: string[];
 }) {
   try {
@@ -65,7 +66,7 @@ async function saveGeneratedCoverLetterToHistory({
       vacancyText,
       language,
       additionalWishes: additionalWishes ?? "",
-      useEmailFormat,
+      messageFormat,
       coverLetterRules,
     });
 

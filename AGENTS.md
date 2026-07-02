@@ -15,6 +15,7 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - For MVP planning context, read the relevant files in `docs/plans/mvp/`.
 - Use `pnpm` for package management and scripts.
 - Keep all code comments in English.
+- Do not use emoji in code, UI copy, documentation, comments, commits, or agent responses.
 - Do not add descriptions for fields, blocks, or UI sections unless the user explicitly asks for them.
 
 # Project Structure

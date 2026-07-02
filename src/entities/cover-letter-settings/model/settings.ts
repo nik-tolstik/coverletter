@@ -3,7 +3,11 @@ export const COVER_LETTER_SETTINGS_REDIS_KEY =
 
 export const DEFAULT_COVER_LETTER_LANGUAGE = "English";
 
-export const DEFAULT_USE_EMAIL_FORMAT = true;
+export const MESSAGE_FORMAT_VALUES = ["email", "telegram"] as const;
+
+export type MessageFormat = (typeof MESSAGE_FORMAT_VALUES)[number];
+
+export const DEFAULT_MESSAGE_FORMAT: MessageFormat = "email";
 
 export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5.4-mini";
 
@@ -130,14 +134,12 @@ export const DEFAULT_COVER_LETTER_RULES = [
 export type CoverLetterSettingsForm = {
   model: string;
   language: string;
-  vacancyText: string;
-  additionalWishes: string;
-  useEmailFormat: boolean;
+  messageFormat: MessageFormat;
   coverLetterRules: string[];
 };
 
 export type CoverLetterSettingsJson = CoverLetterSettingsForm & {
-  schemaVersion: 4;
+  schemaVersion: 5;
 };
 
 export type CoverLetterSettingsState = {
@@ -150,9 +152,7 @@ export function createDefaultCoverLetterSettingsForm(): CoverLetterSettingsForm 
   return {
     model: DEFAULT_OPENROUTER_MODEL,
     language: DEFAULT_COVER_LETTER_LANGUAGE,
-    vacancyText: "",
-    additionalWishes: "",
-    useEmailFormat: DEFAULT_USE_EMAIL_FORMAT,
+    messageFormat: DEFAULT_MESSAGE_FORMAT,
     coverLetterRules: DEFAULT_COVER_LETTER_RULES,
   };
 }
@@ -167,9 +167,7 @@ export function coverLetterSettingsJsonToForm(
   return {
     model: normalizeOpenRouterModel(settings.model),
     language: settings.language,
-    vacancyText: settings.vacancyText,
-    additionalWishes: settings.additionalWishes,
-    useEmailFormat: settings.useEmailFormat,
+    messageFormat: settings.messageFormat,
     coverLetterRules: settings.coverLetterRules,
   };
 }
@@ -178,13 +176,11 @@ export function coverLetterSettingsFormToJson(
   settings: CoverLetterSettingsForm,
 ): CoverLetterSettingsJson {
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     model: normalizeOpenRouterModel(settings.model),
     language:
       writeLineValue(settings.language) || DEFAULT_COVER_LETTER_LANGUAGE,
-    vacancyText: writeTextValue(settings.vacancyText),
-    additionalWishes: writeTextValue(settings.additionalWishes),
-    useEmailFormat: settings.useEmailFormat,
+    messageFormat: normalizeMessageFormat(settings.messageFormat),
     coverLetterRules: normalizeCoverLetterRules(settings.coverLetterRules),
   };
 }
@@ -197,12 +193,13 @@ export function normalizeCoverLetterSettings(
   }
 
   return {
-    schemaVersion: 4,
+    schemaVersion: 5,
     model: normalizeOpenRouterModel(readString(input.model)),
     language: readString(input.language) || DEFAULT_COVER_LETTER_LANGUAGE,
-    vacancyText: readText(input.vacancyText),
-    additionalWishes: readText(input.additionalWishes),
-    useEmailFormat: readBoolean(input.useEmailFormat, DEFAULT_USE_EMAIL_FORMAT),
+    messageFormat: normalizeMessageFormat(
+      input.messageFormat,
+      readLegacyMessageFormat(input.useEmailFormat),
+    ),
     coverLetterRules: normalizeCoverLetterRules(
       readStringList(input.coverLetterRules),
     ),
@@ -217,6 +214,15 @@ export function normalizeOpenRouterModel(model: string) {
   )
     ? normalizedModel
     : DEFAULT_OPENROUTER_MODEL;
+}
+
+export function normalizeMessageFormat(
+  input: unknown,
+  fallback: MessageFormat = DEFAULT_MESSAGE_FORMAT,
+): MessageFormat {
+  return MESSAGE_FORMAT_VALUES.includes(input as MessageFormat)
+    ? (input as MessageFormat)
+    : fallback;
 }
 
 function normalizeCoverLetterRules(items: string[]) {
@@ -268,10 +274,7 @@ function readStringList(input: unknown) {
   }
 
   if (typeof input === "string") {
-    return input
-      .split("\n")
-      .map(readString)
-      .filter(Boolean);
+    return input.split("\n").map(readString).filter(Boolean);
   }
 
   return [];
@@ -285,18 +288,14 @@ function readString(input: unknown) {
   return typeof input === "string" ? writeLineValue(input) : "";
 }
 
-function readText(input: unknown) {
-  return typeof input === "string" ? writeTextValue(input) : "";
-}
+function readLegacyMessageFormat(input: unknown): MessageFormat {
+  if (typeof input !== "boolean") {
+    return DEFAULT_MESSAGE_FORMAT;
+  }
 
-function readBoolean(input: unknown, fallback: boolean) {
-  return typeof input === "boolean" ? input : fallback;
+  return input ? "email" : "telegram";
 }
 
 function writeLineValue(value: string) {
   return value.replace(/\s+/g, " ").trim();
-}
-
-function writeTextValue(value: string) {
-  return value.replace(/\r\n/g, "\n").replace(/\r/g, "\n").trim();
 }

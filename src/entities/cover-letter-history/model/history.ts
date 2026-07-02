@@ -1,3 +1,9 @@
+import {
+  DEFAULT_MESSAGE_FORMAT,
+  normalizeMessageFormat,
+  type MessageFormat,
+} from "@/entities/cover-letter-settings";
+
 export const COVER_LETTER_HISTORY_REDIS_KEY =
   "cover-letter-history:default:json";
 
@@ -14,12 +20,12 @@ export type CoverLetterHistoryItem = {
   vacancyText: string;
   language: string;
   additionalWishes: string;
-  useEmailFormat: boolean;
+  messageFormat: MessageFormat;
   coverLetterRules: string[];
 };
 
 export type CoverLetterHistoryJson = {
-  schemaVersion: 2;
+  schemaVersion: 3;
   items: CoverLetterHistoryItem[];
 };
 
@@ -36,7 +42,7 @@ export type CreateCoverLetterHistoryItemInput = Omit<
 
 export function createDefaultCoverLetterHistoryJson(): CoverLetterHistoryJson {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     items: [],
   };
 }
@@ -53,7 +59,7 @@ export function normalizeCoverLetterHistory(
     : [];
 
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     items: deduplicateHistoryItems(items).slice(
       0,
       MAX_COVER_LETTER_HISTORY_ITEMS,
@@ -78,7 +84,7 @@ export function createCoverLetterHistoryItem(
     vacancyText,
     language: writeLineValue(input.language),
     additionalWishes: writeTextValue(input.additionalWishes),
-    useEmailFormat: input.useEmailFormat,
+    messageFormat: normalizeMessageFormat(input.messageFormat),
     coverLetterRules: deduplicateList(input.coverLetterRules),
   };
 }
@@ -88,7 +94,7 @@ export function addCoverLetterHistoryItem(
   item: CoverLetterHistoryItem,
 ): CoverLetterHistoryJson {
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
     items: deduplicateHistoryItems([item, ...history.items]).slice(
       0,
       MAX_COVER_LETTER_HISTORY_ITEMS,
@@ -120,7 +126,10 @@ function normalizeHistoryItem(input: unknown): CoverLetterHistoryItem | null {
     vacancyText,
     language,
     additionalWishes: readText(input.additionalWishes),
-    useEmailFormat: readBoolean(input.useEmailFormat, true),
+    messageFormat: normalizeMessageFormat(
+      input.messageFormat,
+      readLegacyMessageFormat(input.useEmailFormat),
+    ),
     coverLetterRules: deduplicateList(readStringList(input.coverLetterRules)),
   };
 }
@@ -194,8 +203,12 @@ function readText(input: unknown) {
   return typeof input === "string" ? writeTextValue(input) : "";
 }
 
-function readBoolean(input: unknown, fallback: boolean) {
-  return typeof input === "boolean" ? input : fallback;
+function readLegacyMessageFormat(input: unknown): MessageFormat {
+  if (typeof input !== "boolean") {
+    return DEFAULT_MESSAGE_FORMAT;
+  }
+
+  return input ? "email" : "telegram";
 }
 
 function writeLineValue(value: string) {

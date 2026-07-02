@@ -82,15 +82,14 @@ The JSON value follows `ProfileJsonState`:
 
 Markdown is generated from JSON only when the AI prompt needs it.
 
-The saved settings value stores the current letter workflow fields:
+The saved settings value stores reusable generation preferences. Vacancy text and additional wishes are current-generation inputs and are not saved here.
 
 ```json
 {
-  "schemaVersion": 3,
+  "schemaVersion": 5,
+  "model": "openai/gpt-5.4-mini",
   "language": "English",
-  "vacancyText": "",
-  "additionalWishes": "",
-  "useEmailFormat": true,
+  "messageFormat": "email",
   "coverLetterRules": ["Вывести только текст письма."]
 }
 ```
@@ -99,17 +98,18 @@ The generated history value stores the most recent letters and the parameters us
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "items": [
     {
       "id": "uuid",
       "createdAt": "2026-07-01T12:00:00.000Z",
       "title": "Frontend Engineer",
       "coverLetter": "Generated letter text",
+      "model": "openai/gpt-5.4-mini",
       "vacancyText": "Vacancy text",
       "language": "English",
       "additionalWishes": "",
-      "useEmailFormat": true,
+      "messageFormat": "email",
       "coverLetterRules": ["Вывести только текст письма."]
     }
   ]

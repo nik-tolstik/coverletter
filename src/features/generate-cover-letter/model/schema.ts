@@ -1,5 +1,8 @@
 import {
   DEFAULT_COVER_LETTER_RULES,
+  DEFAULT_MESSAGE_FORMAT,
+  type MessageFormat,
+  normalizeMessageFormat,
   normalizeOpenRouterModel,
 } from "@/entities/cover-letter-settings";
 
@@ -12,7 +15,7 @@ export type GenerateCoverLetterRequest = {
   vacancyText: string;
   language: string;
   additionalWishes?: string;
-  useEmailFormat: boolean;
+  messageFormat: MessageFormat;
   coverLetterRules: string[];
 };
 
@@ -36,7 +39,10 @@ export const generateCoverLetterRequestSchema = {
         vacancyText,
         language,
         additionalWishes: readOptionalString(input.additionalWishes),
-        useEmailFormat: readBoolean(input.useEmailFormat, true),
+        messageFormat: normalizeMessageFormat(
+          input.messageFormat,
+          readLegacyMessageFormat(input.useEmailFormat),
+        ),
         coverLetterRules: readStringList(
           input.coverLetterRules,
           DEFAULT_COVER_LETTER_RULES,
@@ -60,8 +66,12 @@ function readOptionalString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
 }
 
-function readBoolean(value: unknown, fallback: boolean) {
-  return typeof value === "boolean" ? value : fallback;
+function readLegacyMessageFormat(value: unknown): MessageFormat {
+  if (typeof value !== "boolean") {
+    return DEFAULT_MESSAGE_FORMAT;
+  }
+
+  return value ? "email" : "telegram";
 }
 
 function readStringList(value: unknown, fallback: string[]) {
