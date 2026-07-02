@@ -1,5 +1,4 @@
 import {
-  DEFAULT_MESSAGE_FORMAT,
   normalizeMessageFormat,
   type MessageFormat,
 } from "@/entities/cover-letter-settings";
@@ -126,10 +125,7 @@ function normalizeHistoryItem(input: unknown): CoverLetterHistoryItem | null {
     vacancyText,
     language,
     additionalWishes: readText(input.additionalWishes),
-    messageFormat: normalizeMessageFormat(
-      input.messageFormat,
-      readLegacyMessageFormat(input.useEmailFormat),
-    ),
+    messageFormat: normalizeMessageFormat(input.messageFormat),
     coverLetterRules: deduplicateList(readStringList(input.coverLetterRules)),
   };
 }
@@ -201,14 +197,6 @@ function readString(input: unknown) {
 
 function readText(input: unknown) {
   return typeof input === "string" ? writeTextValue(input) : "";
-}
-
-function readLegacyMessageFormat(input: unknown): MessageFormat {
-  if (typeof input !== "boolean") {
-    return DEFAULT_MESSAGE_FORMAT;
-  }
-
-  return input ? "email" : "telegram";
 }
 
 function writeLineValue(value: string) {

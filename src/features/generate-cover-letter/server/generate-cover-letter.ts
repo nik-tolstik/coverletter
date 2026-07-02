@@ -113,7 +113,7 @@ function getOutputFormatRules(messageFormat: MessageFormat) {
   }
 
   return [
-    "Write as a normal Telegram or direct chat message, not as a formal email or classical cover letter.",
+    "Write as a normal direct chat message, not as a formal email or classical cover letter.",
     'Do not use "Dear ...", "Best regards", formal signatures, subject lines, headers, or formal closing blocks.',
     "Use a direct, natural, human tone with short paragraphs.",
   ];

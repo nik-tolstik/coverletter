@@ -4,7 +4,7 @@ import {
 } from "@/entities/cover-letter-settings";
 
 export function getMessageFormatLabel(messageFormat: MessageFormat) {
-  return messageFormat === "email" ? "Email" : "Telegram";
+  return messageFormat === "email" ? "Email" : "Сообщение";
 }
 
 export function getModelLabel(model: string) {

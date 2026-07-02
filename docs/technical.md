@@ -30,7 +30,7 @@ Persisted cover letter settings:
 
 - `model`: OpenRouter model used for generation.
 - `language`: target output language, initially `ru` and `en`.
-- `messageFormat`: output format selector value, either `email` or `telegram`.
+- `messageFormat`: output format selector value, either `email` or `message`.
 - `coverLetterRules`: editable rules for the current letter.
 
 Current generation inputs:

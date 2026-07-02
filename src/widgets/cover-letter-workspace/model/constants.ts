@@ -2,7 +2,7 @@ import type { MessageFormat } from "@/entities/cover-letter-settings";
 
 export const MESSAGE_FORMAT_OPTIONS = [
   { value: "email", label: "Email" },
-  { value: "telegram", label: "Telegram" },
+  { value: "message", label: "Сообщение" },
 ] satisfies Array<{ value: MessageFormat; label: string }>;
 
 export const OPENROUTER_MODEL_GROUPS = [

@@ -3,7 +3,7 @@ export const COVER_LETTER_SETTINGS_REDIS_KEY =
 
 export const DEFAULT_COVER_LETTER_LANGUAGE = "English";
 
-export const MESSAGE_FORMAT_VALUES = ["email", "telegram"] as const;
+export const MESSAGE_FORMAT_VALUES = ["email", "message"] as const;
 
 export type MessageFormat = (typeof MESSAGE_FORMAT_VALUES)[number];
 
@@ -196,10 +196,7 @@ export function normalizeCoverLetterSettings(
     schemaVersion: 5,
     model: normalizeOpenRouterModel(readString(input.model)),
     language: readString(input.language) || DEFAULT_COVER_LETTER_LANGUAGE,
-    messageFormat: normalizeMessageFormat(
-      input.messageFormat,
-      readLegacyMessageFormat(input.useEmailFormat),
-    ),
+    messageFormat: normalizeMessageFormat(input.messageFormat),
     coverLetterRules: normalizeCoverLetterRules(
       readStringList(input.coverLetterRules),
     ),
@@ -286,14 +283,6 @@ function isRecord(input: unknown): input is Record<string, unknown> {
 
 function readString(input: unknown) {
   return typeof input === "string" ? writeLineValue(input) : "";
-}
-
-function readLegacyMessageFormat(input: unknown): MessageFormat {
-  if (typeof input !== "boolean") {
-    return DEFAULT_MESSAGE_FORMAT;
-  }
-
-  return input ? "email" : "telegram";
 }
 
 function writeLineValue(value: string) {
