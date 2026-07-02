@@ -10,20 +10,35 @@ export function CollapsibleCard({
   title,
   contentId,
   action,
+  className,
+  contentClassName,
+  contentWrapperClassName,
   defaultOpen = true,
+  headerClassName,
+  titleClassName,
   children,
 }: {
   title: string;
   contentId: string;
   action?: ReactNode;
+  className?: string;
+  contentClassName?: string;
+  contentWrapperClassName?: string;
   defaultOpen?: boolean;
+  headerClassName?: string;
+  titleClassName?: string;
   children: ReactNode;
 }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
   return (
-    <Card className="gap-0">
-      <CardHeader className="flex flex-row items-center justify-between gap-3">
+    <Card className={cn("gap-0", className)}>
+      <CardHeader
+        className={cn(
+          "flex flex-row items-center justify-between gap-3",
+          headerClassName,
+        )}
+      >
         <button
           type="button"
           aria-expanded={isOpen}
@@ -38,7 +53,7 @@ export function CollapsibleCard({
             )}
           />
           <span className="flex min-w-0 flex-col gap-1">
-            <CardTitle>{title}</CardTitle>
+            <CardTitle className={titleClassName}>{title}</CardTitle>
           </span>
         </button>
         {action && <div className="shrink-0">{action}</div>}
@@ -46,9 +61,12 @@ export function CollapsibleCard({
       <CollapsibleContent
         id={contentId}
         isOpen={isOpen}
-        contentClassName="pt-(--card-spacing)"
+        contentWrapperClassName={cn(
+          "pt-(--card-spacing)",
+          contentWrapperClassName,
+        )}
       >
-        <CardContent>{children}</CardContent>
+        <CardContent className={contentClassName}>{children}</CardContent>
       </CollapsibleContent>
     </Card>
   );
@@ -57,12 +75,12 @@ export function CollapsibleCard({
 function CollapsibleContent({
   id,
   isOpen,
-  contentClassName,
+  contentWrapperClassName,
   children,
 }: {
   id: string;
   isOpen: boolean;
-  contentClassName?: string;
+  contentWrapperClassName?: string;
   children: ReactNode;
 }) {
   return (
@@ -75,7 +93,7 @@ function CollapsibleContent({
       )}
     >
       <div className="min-h-0 overflow-hidden" inert={!isOpen}>
-        <div className={contentClassName}>{children}</div>
+        <div className={contentWrapperClassName}>{children}</div>
       </div>
     </div>
   );

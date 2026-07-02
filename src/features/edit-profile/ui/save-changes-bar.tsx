@@ -19,7 +19,7 @@ export function SaveChangesBar({
 }: SaveChangesBarProps) {
   return (
     <div className="fixed inset-x-0 bottom-[calc(4.8rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-background/95 shadow-lg backdrop-blur supports-[backdrop-filter]:bg-background/80">
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-3 px-4 py-4">
+      <div className="mx-auto flex w-full max-w-190 flex-col gap-3 px-4 py-4">
         <div role="status" aria-live="polite" aria-busy={isPending}>
           <p className="text-sm font-medium">
             {saveError || "Есть несохранённые изменения"}

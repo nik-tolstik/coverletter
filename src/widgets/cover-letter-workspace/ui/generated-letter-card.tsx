@@ -25,10 +25,7 @@ export function GeneratedLetterCard({
         <div
           className={cn(
             "relative rounded-xl text-sm leading-7 whitespace-pre-wrap",
-            loading
-              ? "min-h-[26dvh]"
-              : "min-h-[40dvh] bg-input/20 p-4",
-            coverLetter && !loading && "pr-14",
+            loading ? "min-h-[26dvh]" : "min-h-[40dvh] bg-input/20 p-4",
           )}
         >
           {coverLetter && !loading && (

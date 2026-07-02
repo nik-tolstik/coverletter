@@ -100,7 +100,7 @@ function ModelSelectLabel({
   );
 }
 
-function ModelLogo({ model }: { model: string }) {
+export function ModelLogo({ model }: { model: string }) {
   const logo = MODEL_LOGOS.find((item) => model.startsWith(item.prefix));
   const Icon = logo?.icon ?? SparklesIcon;
   const iconClassName =

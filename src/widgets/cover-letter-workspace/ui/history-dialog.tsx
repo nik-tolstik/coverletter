@@ -1,9 +1,17 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useState } from "react";
-import { HistoryIcon, SparklesIcon, Trash2Icon } from "lucide-react";
+import {
+  CopyIcon,
+  HistoryIcon,
+  SparklesIcon,
+  Trash2Icon,
+} from "lucide-react";
+import { toast } from "sonner";
 
 import type { CoverLetterHistoryItem } from "@/entities/cover-letter-history";
+import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
 import { Button } from "@/shared/ui/button";
 import {
@@ -14,10 +22,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/shared/ui/dialog";
-import { Field, FieldLabel } from "@/shared/ui/field";
-import { Input } from "@/shared/ui/input";
-import { getLanguageLabel } from "@/shared/ui/language-select";
-import { Textarea } from "@/shared/ui/textarea";
+import { Field, FieldTitle } from "@/shared/ui/field";
+import {
+  getLanguageLabel,
+  getLanguageOption,
+  LanguageSelectLabel,
+} from "@/shared/ui/language-select";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 import {
   formatHistoryDate,
@@ -25,6 +36,8 @@ import {
   getModelLabel,
 } from "../lib/labels";
 import type { HistoryItemAction } from "../model/types";
+import { CollapsibleCard } from "./collapsible-card";
+import { ModelLogo } from "./model-select";
 
 export function HistoryDialog({
   history,
@@ -39,13 +52,19 @@ export function HistoryDialog({
   onClear: () => void;
   onRepeat: HistoryItemAction;
 }) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [selectedItem, setSelectedItem] =
     useState<CoverLetterHistoryItem | null>(null);
 
-  function handleOpenChange(nextOpen: boolean) {
-    setIsOpen(nextOpen);
+  function handleHistoryOpenChange(nextOpen: boolean) {
+    setIsHistoryOpen(nextOpen);
 
+    if (!nextOpen) {
+      setSelectedItem(null);
+    }
+  }
+
+  function handleDetailsOpenChange(nextOpen: boolean) {
     if (!nextOpen) {
       setSelectedItem(null);
     }
@@ -57,63 +76,74 @@ export function HistoryDialog({
     }
 
     onRepeat(selectedItem);
-    setIsOpen(false);
+    setIsHistoryOpen(false);
     setSelectedItem(null);
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <Button variant="outline">
-          <HistoryIcon data-icon="inline-start" />
-          История
-        </Button>
-      </DialogTrigger>
-      <DialogContent className="max-w-[760px]">
-        <DialogHeader>
-          <DialogTitle>
-            {selectedItem ? "Письмо из истории" : "История"}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={isHistoryOpen} onOpenChange={handleHistoryOpenChange}>
+        <DialogTrigger asChild>
+          <Button variant="outline">
+            <HistoryIcon data-icon="inline-start" />
+            История
+          </Button>
+        </DialogTrigger>
+        <HistoryDialogContent>
+          <DialogHeader className="border-b border-border px-5 py-4 pr-12 sm:px-6 sm:pr-14">
+            <DialogTitle>История</DialogTitle>
+          </DialogHeader>
 
-        {selectedItem ? (
-          <HistoryItemDetails item={selectedItem} />
-        ) : (
-          <HistoryList history={history} onSelect={setSelectedItem} />
-        )}
+          <div className="min-h-0 overflow-y-auto px-5 py-4 sm:px-6">
+            <HistoryList history={history} onSelect={setSelectedItem} />
+          </div>
 
-        <DialogFooter>
-          {selectedItem ? (
-            <>
-              <Button
-                type="button"
-                onClick={handleRepeat}
-                disabled={isGenerating}
-              >
-                <SparklesIcon data-icon="inline-start" />
-                {isGenerating ? "Генерирую" : "Повторить"}
-              </Button>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setSelectedItem(null)}
-              >
-                Назад
-              </Button>
-            </>
-          ) : (
+          <DialogFooter className="flex-col border-t border-border bg-card px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:pb-4">
             <Button
               variant="outline"
               onClick={onClear}
               disabled={!history.length || isClearingHistory}
+              className="w-full sm:w-auto"
             >
               <Trash2Icon data-icon="inline-start" />
               {isClearingHistory ? "Очищаю" : "Очистить"}
             </Button>
-          )}
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DialogFooter>
+        </HistoryDialogContent>
+      </Dialog>
+
+      <Dialog open={selectedItem !== null} onOpenChange={handleDetailsOpenChange}>
+        <HistoryDialogContent>
+          <DialogHeader className="border-b border-border px-5 py-4 pr-12 sm:px-6 sm:pr-14">
+            <DialogTitle>Письмо из истории</DialogTitle>
+          </DialogHeader>
+
+          <div className="min-h-0 overflow-y-auto px-5 py-4 sm:px-6">
+            {selectedItem ? <HistoryItemDetails item={selectedItem} /> : null}
+          </div>
+
+          <DialogFooter className="flex-col border-t border-border bg-card px-5 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:pb-4">
+            <Button
+              type="button"
+              onClick={handleRepeat}
+              disabled={isGenerating || !selectedItem}
+              className="w-full sm:w-auto"
+            >
+              <SparklesIcon data-icon="inline-start" />
+              {isGenerating ? "Генерирую" : "Повторить"}
+            </Button>
+          </DialogFooter>
+        </HistoryDialogContent>
+      </Dialog>
+    </>
+  );
+}
+
+function HistoryDialogContent({ children }: { children: ReactNode }) {
+  return (
+    <DialogContent className="top-0 bottom-0 grid h-auto !max-h-none w-full max-w-190 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-none p-0 sm:bottom-0">
+      {children}
+    </DialogContent>
   );
 }
 
@@ -134,7 +164,7 @@ function HistoryList({
   }
 
   return (
-    <div className="flex max-h-[28rem] flex-col gap-2 overflow-y-auto pr-1">
+    <div className="flex flex-col gap-2">
       {history.map((item) => (
         <button
           type="button"
@@ -168,72 +198,171 @@ function HistoryList({
 
 function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
   return (
-    <div className="grid max-h-[60dvh] gap-4 overflow-y-auto pr-1">
+    <div className="grid gap-3">
       <div className="grid gap-4 sm:grid-cols-3">
         <Field>
-          <FieldLabel htmlFor="history-language">Язык</FieldLabel>
-          <Input
-            id="history-language"
-            value={getLanguageLabel(item.language)}
-            readOnly
-          />
+          <FieldTitle>Язык</FieldTitle>
+          <HistoryReadonlyValue>
+            <HistoryLanguageValue language={item.language} />
+          </HistoryReadonlyValue>
         </Field>
         <Field>
-          <FieldLabel htmlFor="history-format">Формат</FieldLabel>
-          <Input
-            id="history-format"
-            value={getMessageFormatLabel(item.messageFormat)}
-            readOnly
-          />
+          <FieldTitle>Формат</FieldTitle>
+          <HistoryReadonlyValue>
+            <span className="min-w-0 truncate">
+              {getMessageFormatLabel(item.messageFormat)}
+            </span>
+          </HistoryReadonlyValue>
         </Field>
         <Field>
-          <FieldLabel htmlFor="history-model">Модель</FieldLabel>
-          <Input id="history-model" value={getModelLabel(item.model)} readOnly />
+          <FieldTitle>Модель</FieldTitle>
+          <HistoryReadonlyValue>
+            <ModelLogo model={item.model} />
+            <span className="min-w-0 truncate">{getModelLabel(item.model)}</span>
+          </HistoryReadonlyValue>
         </Field>
       </div>
 
-      <Field>
-        <FieldLabel htmlFor="history-cover-letter">Письмо</FieldLabel>
-        <Textarea
-          id="history-cover-letter"
-          value={item.coverLetter}
-          readOnly
-          className="max-h-[min(42dvh,24rem)]"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="history-vacancy">Текст вакансии</FieldLabel>
-        <Textarea
-          id="history-vacancy"
-          value={item.vacancyText}
-          readOnly
-          className="max-h-[min(36dvh,18rem)]"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="history-additional-wishes">
-          Дополнительные пожелания
-        </FieldLabel>
-        <Textarea
-          id="history-additional-wishes"
-          value={item.additionalWishes}
-          readOnly
-          placeholder="Нет"
-          className="max-h-[min(30dvh,14rem)]"
-        />
-      </Field>
-
-      <Field>
-        <FieldLabel htmlFor="history-rules">Правила письма</FieldLabel>
-        <Textarea
-          id="history-rules"
+      <HistoryCollapsibleCard
+        title="Правила письма"
+        contentId="history-rules-content"
+        defaultOpen={false}
+      >
+        <HistoryReadonlyText
           value={item.coverLetterRules.join("\n")}
-          readOnly
-          className="max-h-[min(36dvh,18rem)]"
+          className="min-h-28"
         />
-      </Field>
+      </HistoryCollapsibleCard>
+
+      <HistoryCollapsibleCard
+        title="Дополнительные пожелания"
+        contentId="history-additional-wishes-content"
+        defaultOpen={false}
+      >
+        <HistoryReadonlyText value={item.additionalWishes} className="min-h-24" />
+      </HistoryCollapsibleCard>
+
+      <HistoryCollapsibleCard
+        title="Текст вакансии"
+        contentId="history-vacancy-content"
+        defaultOpen={false}
+      >
+        <HistoryReadonlyText value={item.vacancyText} className="min-h-40" />
+      </HistoryCollapsibleCard>
+
+      <HistoryCollapsibleCard
+        title="Письмо"
+        contentId="history-cover-letter-content"
+      >
+        <HistoryReadonlyText
+          value={item.coverLetter}
+          className="min-h-72"
+          action={<HistoryCopyButton value={item.coverLetter} />}
+        />
+      </HistoryCollapsibleCard>
     </div>
   );
+}
+
+function HistoryCollapsibleCard({
+  title,
+  contentId,
+  action,
+  defaultOpen,
+  children,
+}: {
+  title: string;
+  contentId: string;
+  action?: ReactNode;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <CollapsibleCard
+      title={title}
+      contentId={contentId}
+      action={action}
+      defaultOpen={defaultOpen}
+      headerClassName="px-0"
+      contentClassName="px-0"
+      titleClassName="text-sm"
+    >
+      {children}
+    </CollapsibleCard>
+  );
+}
+
+function HistoryCopyButton({ value }: { value: string }) {
+  async function handleCopy() {
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success("Письмо скопировано.");
+    } catch {
+      toast.error("Не удалось скопировать письмо.");
+    }
+  }
+
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          size="icon-sm"
+          className="absolute top-3 right-3"
+          aria-label="Копировать письмо"
+          onClick={handleCopy}
+        >
+          <CopyIcon />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Копировать</TooltipContent>
+    </Tooltip>
+  );
+}
+
+function HistoryReadonlyValue({ children }: { children: ReactNode }) {
+  return (
+    <div className="flex h-9 w-full min-w-0 items-center gap-2 rounded-4xl bg-input/30 px-3 py-1 text-sm">
+      {children}
+    </div>
+  );
+}
+
+function HistoryReadonlyText({
+  value,
+  className,
+  action,
+  emptyLabel = "Нет",
+}: {
+  value: string;
+  className?: string;
+  action?: ReactNode;
+  emptyLabel?: string;
+}) {
+  const content = value.trim();
+
+  return (
+    <div
+      className={cn(
+        "relative w-full whitespace-pre-wrap break-words rounded-xl bg-input/30 px-3 py-3 text-sm leading-6",
+        !content && "text-muted-foreground",
+        action && "pr-14",
+        className,
+      )}
+    >
+      {action}
+      {content || emptyLabel}
+    </div>
+  );
+}
+
+function HistoryLanguageValue({ language }: { language: string }) {
+  const languageOption = getLanguageOption(language);
+
+  if (languageOption) {
+    return <LanguageSelectLabel option={languageOption} />;
+  }
+
+  return <span className="min-w-0 truncate">{getLanguageLabel(language)}</span>;
 }

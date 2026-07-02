@@ -29,7 +29,7 @@ export function CoverLetterWorkspace({
 
   return (
     <main className="min-h-dvh bg-background">
-      <div className="mx-auto flex w-full max-w-[760px] flex-col gap-5 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
+      <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <div className="flex min-w-0 items-center justify-center gap-3 px-1">
           <Image
             src="/icon.svg"

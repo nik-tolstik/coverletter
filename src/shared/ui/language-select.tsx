@@ -25,7 +25,7 @@ export const LANGUAGE_OPTIONS = [
   },
 ] as const;
 
-type LanguageOption = (typeof LANGUAGE_OPTIONS)[number];
+export type LanguageOption = (typeof LANGUAGE_OPTIONS)[number];
 
 export function LanguageSelect({
   id,
@@ -78,11 +78,11 @@ export function getLanguageLabel(language: string) {
   return getLanguageOption(language)?.label ?? language;
 }
 
-function getLanguageOption(language?: string) {
+export function getLanguageOption(language?: string) {
   return LANGUAGE_OPTIONS.find((item) => item.value === language);
 }
 
-function LanguageSelectLabel({ option }: { option: LanguageOption }) {
+export function LanguageSelectLabel({ option }: { option: LanguageOption }) {
   const Icon = option.icon;
 
   return (
