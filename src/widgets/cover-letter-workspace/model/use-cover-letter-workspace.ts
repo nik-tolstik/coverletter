@@ -22,6 +22,10 @@ import {
   type CoverLetterSettingsForm,
 } from "@/entities/cover-letter-settings";
 
+import {
+  createGenerationReadySound,
+  type GenerationReadySound,
+} from "../lib/generation-ready-sound";
 import { splitLines } from "../lib/rules";
 import { SETTINGS_SAVE_DEBOUNCE_MS } from "./constants";
 import type { LetterGenerationSettings, SavedLetterSettings } from "./types";
@@ -65,6 +69,7 @@ export function useCoverLetterWorkspace({
     isRunning: false,
     pendingSettings: null,
   });
+  const generationReadySoundRef = useRef<GenerationReadySound | null>(null);
 
   const hasLetterContent = isGenerating || Boolean(coverLetter);
   const canGenerateLetter = vacancyText.trim().length > 0;
@@ -148,6 +153,11 @@ export function useCoverLetterWorkspace({
 
   const generateLetter = useCallback(
     (settings: LetterGenerationSettings = currentSettings) => {
+      const generationReadySound =
+        generationReadySoundRef.current ?? createGenerationReadySound();
+      generationReadySoundRef.current = generationReadySound;
+      generationReadySound.unlock();
+
       startGenerating(async () => {
         try {
           const response = await fetch("/api/cover-letter", {
@@ -170,6 +180,7 @@ export function useCoverLetterWorkspace({
           }
 
           setCoverLetter(data.coverLetter);
+          generationReadySound.play();
 
           if (data.historyItem) {
             const historyItem = data.historyItem;
