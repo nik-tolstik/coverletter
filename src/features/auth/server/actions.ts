@@ -14,16 +14,7 @@ import {
   sendPasswordResetEmail,
   sendVerificationEmail,
 } from "./email";
-
-export type AuthActionState = {
-  status: "idle" | "success" | "error";
-  message: string;
-};
-
-export const initialAuthActionState: AuthActionState = {
-  status: "idle",
-  message: "",
-};
+import type { AuthActionState } from "@/features/auth/model";
 
 export async function loginAction(
   _state: AuthActionState,

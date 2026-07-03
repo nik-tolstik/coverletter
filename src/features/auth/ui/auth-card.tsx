@@ -6,12 +6,14 @@ import { useActionState } from "react";
 
 import {
   forgotPasswordAction,
-  initialAuthActionState,
   loginAction,
   registerAction,
   resetPasswordAction,
+} from "@/features/auth/server/actions";
+import {
+  initialAuthActionState,
   type AuthActionState,
-} from "@/features/auth/server";
+} from "@/features/auth/model";
 import { Button } from "@/shared/ui/button";
 import {
   Card,
