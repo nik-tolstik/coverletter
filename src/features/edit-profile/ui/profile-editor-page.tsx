@@ -5,7 +5,6 @@ import { ChevronDownIcon, DownloadIcon } from "lucide-react";
 import type { ProfileFormState } from "@/entities/profile";
 import { useProfileEditor } from "@/features/edit-profile/model/use-profile-editor";
 import { Button } from "@/shared/ui/button";
-import { UserMenu } from "@/widgets/app-navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,16 +21,14 @@ import { StandaloneProjectsSection } from "./sections/standalone-projects-sectio
 
 export function ProfileEditorPage({
   initialProfile,
-  userEmail,
 }: {
   initialProfile: ProfileFormState;
-  userEmail: string;
 }) {
   const editor = useProfileEditor(initialProfile);
 
   return (
-    <main className="min-h-dvh bg-background" aria-busy={editor.isPending}>
-      <div className="mx-auto flex w-full max-w-190 flex-col gap-6 px-4 pt-5 pb-20">
+    <>
+      <div className="flex flex-col gap-6" aria-busy={editor.isPending}>
         <header className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-card p-4">
           <div className="flex flex-col gap-2">
             <h1 className="font-heading text-xl font-semibold">Профиль</h1>
@@ -51,7 +48,6 @@ export function ProfileEditorPage({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <UserMenu email={userEmail} />
           </div>
         </header>
 
@@ -97,6 +93,6 @@ export function ProfileEditorPage({
           onSave={editor.saveProfile}
         />
       )}
-    </main>
+    </>
   );
 }
