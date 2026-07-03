@@ -1,5 +1,11 @@
+import { getUserScopedRedisKey } from "@/entities/auth";
+
 export const COVER_LETTER_SETTINGS_REDIS_KEY =
   "cover-letter-settings:default:json";
+
+export function getCoverLetterSettingsRedisKey(email: string) {
+  return getUserScopedRedisKey("cover-letter-settings", email, "json");
+}
 
 export const DEFAULT_COVER_LETTER_LANGUAGE = "English";
 

@@ -27,6 +27,11 @@ const navigationItems: NavigationItem[] = [
 
 export function AppBottomNavigation() {
   const pathname = usePathname();
+
+  if (pathname.startsWith("/auth")) {
+    return null;
+  }
+
   const activeIndex = navigationItems.findIndex((item) =>
     item.href === "/" ? pathname === "/" : pathname.startsWith(item.href),
   );

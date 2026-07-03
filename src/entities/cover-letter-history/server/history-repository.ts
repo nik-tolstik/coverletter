@@ -7,6 +7,7 @@ import {
   addCoverLetterHistoryItem,
   createCoverLetterHistoryItem,
   createDefaultCoverLetterHistoryJson,
+  getCoverLetterHistoryRedisKey,
   normalizeCoverLetterHistory,
 } from "@/entities/cover-letter-history";
 import type {
@@ -14,9 +15,13 @@ import type {
   CoverLetterHistoryState,
   CreateCoverLetterHistoryItemInput,
 } from "@/entities/cover-letter-history";
+import { isOwnerEmail, normalizeAuthEmail } from "@/entities/auth";
 import { getRedis } from "@/shared/api/upstash";
 
-export async function getCoverLetterHistory(): Promise<CoverLetterHistoryState> {
+export async function getCoverLetterHistory(
+  email: string,
+): Promise<CoverLetterHistoryState> {
+  const userEmail = normalizeAuthEmail(email);
   const redis = getRedis();
 
   if (!redis) {
@@ -26,25 +31,36 @@ export async function getCoverLetterHistory(): Promise<CoverLetterHistoryState> 
     );
   }
 
-  const storedJson = await redis.get<unknown>(COVER_LETTER_HISTORY_REDIS_KEY);
+  const userHistoryKey = getCoverLetterHistoryRedisKey(userEmail);
+  const storedJson = await redis.get<unknown>(userHistoryKey);
 
-  if (!storedJson) {
+  if (storedJson) {
     return buildCoverLetterHistoryState(
-      createDefaultCoverLetterHistoryJson(),
-      "template",
+      normalizeCoverLetterHistory(storedJson),
+      "redis",
     );
   }
 
+  const migratedHistory = await readOwnerHistoryMigration(userEmail);
+
+  if (migratedHistory) {
+    await saveCoverLetterHistoryJson(userEmail, migratedHistory);
+
+    return buildCoverLetterHistoryState(migratedHistory, "redis");
+  }
+
   return buildCoverLetterHistoryState(
-    normalizeCoverLetterHistory(storedJson),
-    "redis",
+    createDefaultCoverLetterHistoryJson(),
+    "template",
   );
 }
 
 export async function addGeneratedCoverLetterToHistory(
+  email: string,
   input: CreateCoverLetterHistoryItemInput,
 ) {
-  const currentHistory = await getCoverLetterHistory();
+  const userEmail = normalizeAuthEmail(email);
+  const currentHistory = await getCoverLetterHistory(userEmail);
   const item = createCoverLetterHistoryItem({
     ...input,
     id: randomUUID(),
@@ -55,7 +71,7 @@ export async function addGeneratedCoverLetterToHistory(
     item,
   );
 
-  await saveCoverLetterHistoryJson(historyJson);
+  await saveCoverLetterHistoryJson(userEmail, historyJson);
 
   return {
     item,
@@ -64,15 +80,30 @@ export async function addGeneratedCoverLetterToHistory(
   };
 }
 
-export async function clearCoverLetterHistory(): Promise<CoverLetterHistoryState> {
+export async function clearCoverLetterHistory(
+  email: string,
+): Promise<CoverLetterHistoryState> {
+  const userEmail = normalizeAuthEmail(email);
   const historyJson = createDefaultCoverLetterHistoryJson();
 
-  await saveCoverLetterHistoryJson(historyJson);
+  await saveCoverLetterHistoryJson(userEmail, historyJson);
 
   return {
     ...buildCoverLetterHistoryState(historyJson, "redis"),
     updatedAt: new Date().toISOString(),
   };
+}
+
+async function readOwnerHistoryMigration(email: string) {
+  const redis = getRedis();
+
+  if (!redis || !isOwnerEmail(email)) {
+    return null;
+  }
+
+  const defaultHistory = await redis.get<unknown>(COVER_LETTER_HISTORY_REDIS_KEY);
+
+  return defaultHistory ? normalizeCoverLetterHistory(defaultHistory) : null;
 }
 
 function buildCoverLetterHistoryState(
@@ -85,16 +116,21 @@ function buildCoverLetterHistoryState(
   };
 }
 
-async function saveCoverLetterHistoryJson(history: CoverLetterHistoryJson) {
+async function saveCoverLetterHistoryJson(
+  email: string,
+  history: CoverLetterHistoryJson,
+) {
   const redis = getRedis();
 
   if (!redis) {
     throw new Error("Переменные окружения хранилища не настроены.");
   }
 
-  await redis.set(COVER_LETTER_HISTORY_REDIS_KEY, history);
+  const userHistoryKey = getCoverLetterHistoryRedisKey(email);
+
+  await redis.set(userHistoryKey, history);
   const storedHistory = normalizeCoverLetterHistory(
-    await redis.get<unknown>(COVER_LETTER_HISTORY_REDIS_KEY),
+    await redis.get<unknown>(userHistoryKey),
   );
 
   if (JSON.stringify(storedHistory) !== JSON.stringify(history)) {

@@ -20,6 +20,11 @@ const identityFields: Array<{
     placeholder: "Иван Иванов",
   },
   {
+    key: "email",
+    label: "Email",
+    placeholder: "niko.tolstik@gmail.com",
+  },
+  {
     key: "currentPosition",
     label: "Текущая позиция",
     placeholder: "Frontend Engineer",
@@ -55,6 +60,7 @@ export function IdentitySection({
             id={`identity-${field.key}`}
             label={field.label}
             placeholder={field.placeholder}
+            type={field.key === "email" ? "email" : "text"}
             value={identity[field.key]}
             onChange={(value) => onUpdate(field.key, value)}
           />

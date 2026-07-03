@@ -3,10 +3,17 @@ import { generateCoverLetter } from "@/features/generate-cover-letter/server";
 import { addGeneratedCoverLetterToHistory } from "@/entities/cover-letter-history/server";
 import type { MessageFormat } from "@/entities/cover-letter-settings";
 import { getProfile } from "@/entities/profile/server";
+import { requireApiAuthenticatedUser } from "@/entities/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(request: Request) {
+  const user = await requireApiAuthenticatedUser();
+
+  if (!user) {
+    return Response.json({ error: "Требуется вход." }, { status: 401 });
+  }
+
   const payload = generateCoverLetterRequestSchema.safeParse(await request.json());
 
   if (!payload.success) {
@@ -17,7 +24,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    const profile = await getProfile();
+    const profile = await getProfile(user.email);
     const generationStartedAt = Date.now();
     const generation = await generateCoverLetter({
       ...payload.data,
@@ -25,6 +32,7 @@ export async function POST(request: Request) {
     });
     const generationDurationMs = Date.now() - generationStartedAt;
     const historyResult = await saveGeneratedCoverLetterToHistory({
+      userEmail: user.email,
       ...payload.data,
       coverLetter: generation.coverLetter,
       generationDurationMs,
@@ -48,6 +56,7 @@ export async function POST(request: Request) {
 }
 
 async function saveGeneratedCoverLetterToHistory({
+  userEmail,
   coverLetter,
   generationDurationMs,
   model,
@@ -57,6 +66,7 @@ async function saveGeneratedCoverLetterToHistory({
   messageFormat,
   coverLetterRules,
 }: {
+  userEmail: string;
   coverLetter: string;
   generationDurationMs: number;
   model: string;
@@ -67,7 +77,7 @@ async function saveGeneratedCoverLetterToHistory({
   coverLetterRules: string[];
 }) {
   try {
-    const history = await addGeneratedCoverLetterToHistory({
+    const history = await addGeneratedCoverLetterToHistory(userEmail, {
       coverLetter,
       generationDurationMs,
       model,

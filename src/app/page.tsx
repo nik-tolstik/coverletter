@@ -1,17 +1,20 @@
 import { HomePage } from "@/_pages/home";
 import { getCoverLetterHistory } from "@/entities/cover-letter-history/server";
 import { getCoverLetterSettings } from "@/entities/cover-letter-settings/server";
+import { requireAuthenticatedUser } from "@/entities/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  const user = await requireAuthenticatedUser();
   const [settings, history] = await Promise.all([
-    getCoverLetterSettings(),
-    getCoverLetterHistory(),
+    getCoverLetterSettings(user.email),
+    getCoverLetterHistory(user.email),
   ]);
 
   return (
     <HomePage
+      userEmail={user.email}
       initialSettings={settings.settings}
       initialHistory={history.history}
     />

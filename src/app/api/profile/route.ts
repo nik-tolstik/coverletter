@@ -1,15 +1,28 @@
 import { saveProfile, getProfile } from "@/entities/profile/server";
 import { profileWriteRequestSchema } from "@/features/edit-profile/server";
+import { requireApiAuthenticatedUser } from "@/entities/auth/server";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const profile = await getProfile();
+  const user = await requireApiAuthenticatedUser();
+
+  if (!user) {
+    return Response.json({ error: "Требуется вход." }, { status: 401 });
+  }
+
+  const profile = await getProfile(user.email);
 
   return Response.json(profile);
 }
 
 export async function PUT(request: Request) {
+  const user = await requireApiAuthenticatedUser();
+
+  if (!user) {
+    return Response.json({ error: "Требуется вход." }, { status: 401 });
+  }
+
   let requestBody: unknown;
 
   try {
@@ -31,7 +44,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const profile = await saveProfile(payload.data.profile);
+    const profile = await saveProfile(user.email, payload.data.profile);
 
     return Response.json(profile);
   } catch (error) {

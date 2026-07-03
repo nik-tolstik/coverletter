@@ -4,6 +4,7 @@ export {
   addCoverLetterHistoryItem,
   createCoverLetterHistoryItem,
   createDefaultCoverLetterHistoryJson,
+  getCoverLetterHistoryRedisKey,
   normalizeCoverLetterHistory,
 } from "./model/history";
 export type {

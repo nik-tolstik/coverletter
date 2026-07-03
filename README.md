@@ -5,7 +5,8 @@ Coverletter is a personal AI assistant for generating tailored cover letters fro
 ## Product Idea
 
 - Structured JSON profile with name, role, years of experience, social links, skills grouped by custom categories, and project-based experience.
-- Profile and cover letter settings persistence in Upstash Redis through Vercel Marketplace.
+- Email/password authentication with Auth.js, confirmation and password reset emails through Resend.
+- User-scoped profile, cover letter settings, and history persistence in Upstash Redis through Vercel Marketplace.
 - Cover letter settings: target language, message format, model, and generation rules. Vacancy text and extra wishes are current-generation inputs, not saved settings.
 - AI prompt assembly that generates Markdown from the JSON profile and passes it as system context.
 - OpenRouter as the AI gateway, with `openai/gpt-5.4-mini` as the default generation model.
@@ -40,7 +41,7 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Environment
 
-The app uses Upstash Redis through Vercel KV-compatible REST variables for the profile and saved letter settings:
+The app uses Upstash Redis through Vercel KV-compatible REST variables for auth users, the profile, saved letter settings, and history:
 
 ```txt
 KV_REST_API_URL=
@@ -48,6 +49,17 @@ KV_REST_API_TOKEN=
 ```
 
 Use the write token, not the read-only token, because `/profile` saves the profile.
+
+Authentication and transactional email:
+
+```txt
+AUTH_SECRET=
+AUTH_URL=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+```
+
+`AUTH_URL` can be omitted locally when the request host is available. `RESEND_FROM_EMAIL` defaults to Resend's test sender if it is not configured.
 
 ## Scripts
 

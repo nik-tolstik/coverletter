@@ -3,8 +3,15 @@ import type { ProfileState } from "@/entities/profile";
 
 export function ProfilePage({
   initialProfile,
+  userEmail,
 }: {
   initialProfile: ProfileState;
+  userEmail: string;
 }) {
-  return <ProfileEditorPage initialProfile={initialProfile.profile} />;
+  return (
+    <ProfileEditorPage
+      userEmail={userEmail}
+      initialProfile={initialProfile.profile}
+    />
+  );
 }

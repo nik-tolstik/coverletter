@@ -2,6 +2,7 @@ import {
   getCoverLetterSettings,
   saveCoverLetterSettings,
 } from "@/entities/cover-letter-settings/server";
+import { requireApiAuthenticatedUser } from "@/entities/auth/server";
 import {
   coverLetterSettingsJsonToForm,
   normalizeCoverLetterSettings,
@@ -10,12 +11,24 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const settings = await getCoverLetterSettings();
+  const user = await requireApiAuthenticatedUser();
+
+  if (!user) {
+    return Response.json({ error: "Требуется вход." }, { status: 401 });
+  }
+
+  const settings = await getCoverLetterSettings(user.email);
 
   return Response.json(settings);
 }
 
 export async function PUT(request: Request) {
+  const user = await requireApiAuthenticatedUser();
+
+  if (!user) {
+    return Response.json({ error: "Требуется вход." }, { status: 401 });
+  }
+
   const payload = await request.json();
 
   if (!isRecord(payload) || !isRecord(payload.settings)) {
@@ -27,6 +40,7 @@ export async function PUT(request: Request) {
 
   try {
     const settings = await saveCoverLetterSettings(
+      user.email,
       coverLetterSettingsJsonToForm(
         normalizeCoverLetterSettings(payload.settings),
       ),

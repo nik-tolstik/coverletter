@@ -2,9 +2,14 @@ import {
   normalizeMessageFormat,
   type MessageFormat,
 } from "@/entities/cover-letter-settings";
+import { getUserScopedRedisKey } from "@/entities/auth";
 
 export const COVER_LETTER_HISTORY_REDIS_KEY =
   "cover-letter-history:default:json";
+
+export function getCoverLetterHistoryRedisKey(email: string) {
+  return getUserScopedRedisKey("cover-letter-history", email, "json");
+}
 
 export const MAX_COVER_LETTER_HISTORY_ITEMS = 20;
 

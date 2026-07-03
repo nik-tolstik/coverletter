@@ -1,6 +1,7 @@
 export type ProfileFormState = {
   identity: {
     name: string;
+    email: string;
     currentPosition: string;
     experience: string;
     location: string;
@@ -22,6 +23,7 @@ export type ProfileJsonState = {
   schemaVersion: 5;
   identity: {
     name: string;
+    email: string;
     currentPosition: string;
     experience: string;
     location: string;
@@ -95,6 +97,7 @@ export function createEmptyProfileForm(): ProfileFormState {
   return {
     identity: {
       name: "",
+      email: "",
       currentPosition: "",
       experience: "",
       location: "",
@@ -152,7 +155,10 @@ export function createEmptyStandaloneProject(): StandaloneProjectForm {
   };
 }
 
-export function parseMarkdownToProfileForm(markdown: string): ProfileFormState {
+export function parseMarkdownToProfileForm(
+  markdown: string,
+  fallbackEmail = "",
+): ProfileFormState {
   const fallback = createEmptyProfileForm();
   const identity = readLabeledBullets(readSection(markdown, "Identity"));
   const links = readLabeledBullets(readSection(markdown, "Links"));
@@ -161,6 +167,10 @@ export function parseMarkdownToProfileForm(markdown: string): ProfileFormState {
   return {
     identity: {
       name: readLabel(identity, "Name", "Имя") ?? fallback.identity.name,
+      email:
+        readLabel(identity, "Email", "Почта") ||
+        writeLineValue(fallbackEmail) ||
+        fallback.identity.email,
       currentPosition:
         readLabel(identity, "Current position", "Текущая позиция", "Role", "Роль") ??
         fallback.identity.currentPosition,
@@ -187,11 +197,17 @@ export function parseMarkdownToProfileForm(markdown: string): ProfileFormState {
   };
 }
 
-export function parseMarkdownToProfileJson(markdown: string): ProfileJsonState {
-  return profileFormToJson(parseMarkdownToProfileForm(markdown));
+export function parseMarkdownToProfileJson(
+  markdown: string,
+  fallbackEmail = "",
+): ProfileJsonState {
+  return profileFormToJson(parseMarkdownToProfileForm(markdown, fallbackEmail));
 }
 
-export function normalizeProfileJson(input: unknown): ProfileJsonState {
+export function normalizeProfileJson(
+  input: unknown,
+  fallbackEmail = "",
+): ProfileJsonState {
   if (!isRecord(input)) {
     return createEmptyProfileJson();
   }
@@ -204,6 +220,7 @@ export function normalizeProfileJson(input: unknown): ProfileJsonState {
     schemaVersion: 5,
     identity: {
       name: readString(identity.name),
+      email: readString(identity.email) || writeLineValue(fallbackEmail),
       currentPosition: readString(identity.currentPosition),
       experience: readString(identity.experience),
       location: readString(identity.location),
@@ -226,6 +243,7 @@ export function profileJsonToForm(profile: ProfileJsonState): ProfileFormState {
   return {
     identity: {
       name: profile.identity.name,
+      email: profile.identity.email,
       currentPosition: profile.identity.currentPosition,
       experience: profile.identity.experience,
       location: profile.identity.location,
@@ -246,6 +264,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
     schemaVersion: 5,
     identity: {
       name: writeLineValue(profile.identity.name),
+      email: writeLineValue(profile.identity.email),
       currentPosition: writeLineValue(profile.identity.currentPosition),
       experience: writeLineValue(profile.identity.experience),
       location: writeLineValue(profile.identity.location),
@@ -290,6 +309,7 @@ export function serializeProfileFormToMarkdown(profile: ProfileFormState) {
 ## Identity
 
 - Name: ${writeLineValue(profile.identity.name)}
+- Email: ${writeLineValue(profile.identity.email)}
 - Current position: ${writeLineValue(profile.identity.currentPosition)}
 - Experience: ${writeLineValue(profile.identity.experience)}
 - Location: ${writeLineValue(profile.identity.location)}

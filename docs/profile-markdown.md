@@ -29,6 +29,7 @@ Stable facts about the candidate.
 ## Identity
 
 - Name: Firstname Lastname
+- Email: niko.tolstik@gmail.com
 - Current position: Frontend Engineer
 - Experience: X years as a Frontend Engineer
 - Location: City, Country
@@ -141,6 +142,7 @@ These can be added after MVP without changing the core prompt contract:
 ## Identity
 
 - Name:
+- Email:
 - Current position:
 - Experience:
 - Location:

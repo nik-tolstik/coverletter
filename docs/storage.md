@@ -2,11 +2,11 @@
 
 ## Decision
 
-Use Upstash Redis from the Vercel Marketplace as the MVP database for the structured JSON profile and saved cover letter settings.
+Use Upstash Redis from the Vercel Marketplace as the MVP database for auth users, the structured JSON profile, saved cover letter settings, and generated history.
 
 Why this is the simplest fit:
 
-- The MVP stores two primary documents: the user's structured JSON profile and saved cover letter settings.
+- The MVP stores a small set of JSON documents per user: auth user, structured profile, saved cover letter settings, and generated history.
 - The data shape is one JSON object, so SQL schema and migrations would add unnecessary work.
 - Vercel Marketplace can provision Upstash and inject environment variables into the project.
 - `@upstash/redis` works well from Next.js Route Handlers and Server Actions.
@@ -29,22 +29,28 @@ Use one Upstash Redis database from Vercel for local development, preview, and p
 
 ## MVP Data Model
 
-Store the profile as one JSON value:
+Store the owner profile as one user-scoped JSON value:
 
 ```txt
-profile:default:json
+profile:user:niko.tolstik%40gmail.com:json
 ```
 
 Store the saved cover letter settings as one JSON value:
 
 ```txt
-cover-letter-settings:default:json
+cover-letter-settings:user:niko.tolstik%40gmail.com:json
 ```
 
 Store the generated cover letter history as one bounded JSON list:
 
 ```txt
-cover-letter-history:default:json
+cover-letter-history:user:niko.tolstik%40gmail.com:json
+```
+
+Store auth users separately:
+
+```txt
+auth:user:niko.tolstik%40gmail.com:json
 ```
 
 The JSON value follows `ProfileJsonState`:
@@ -54,6 +60,7 @@ The JSON value follows `ProfileJsonState`:
   "schemaVersion": 5,
   "identity": {
     "name": "",
+    "email": "niko.tolstik@gmail.com",
     "currentPosition": "",
     "experience": "",
     "location": "",
@@ -119,13 +126,14 @@ The generated history value stores the most recent letters, generation duration,
 
 ## Profile Source Flow
 
-1. The app reads `profile:default:json` from Upstash Redis.
-2. If the JSON key does not exist, the app reads legacy `profile:default:markdown`, migrates it to JSON, and removes the legacy key after a confirmed save.
-3. If neither key exists, the app uses the bundled empty template from `docs/profile-markdown.md` and converts it to JSON in memory.
-4. The user edits the profile in the UI.
-5. Saving writes the JSON object back to Upstash Redis.
-6. Cover letter generation always uses Markdown generated from the current JSON profile.
-7. The root page reads and writes saved cover letter settings from `cover-letter-settings:default:json`.
+1. The app authenticates the user and normalizes the session email.
+2. The app reads `profile:user:<encoded-email>:json` from Upstash Redis.
+3. For `niko.tolstik@gmail.com` only, if the scoped JSON key does not exist, the app copies data from the legacy `profile:default:json` or `profile:default:markdown` key.
+4. If neither key exists, the app uses the bundled empty template from `docs/profile-markdown.md` and converts it to JSON in memory.
+5. The user edits the profile in the UI.
+6. Saving writes the JSON object back to Upstash Redis under the scoped key.
+7. Cover letter generation always uses Markdown generated from the current JSON profile.
+8. The root page reads and writes saved cover letter settings from `cover-letter-settings:user:<encoded-email>:json`.
 
 Local browser storage may be used only as a draft cache, not as the source of truth.
 
@@ -150,12 +158,21 @@ KV_REST_API_TOKEN=
 
 `@upstash/redis` also supports the equivalent Upstash names, `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. This app accepts either pair.
 
+Auth and email variables:
+
+```txt
+AUTH_SECRET=
+AUTH_URL=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
+```
+
 ## Security Rules
 
 - Keep Upstash credentials server-side only.
 - Do not expose Redis URLs or tokens to Client Components.
 - Do not log the full profile JSON, generated Markdown, or generation prompts.
-- Keep profile reads and writes behind server routes.
+- Keep profile, settings, history, and auth user reads/writes behind server routes.
 
 ## Implementation Notes
 

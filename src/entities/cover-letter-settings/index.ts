@@ -10,6 +10,7 @@ export {
   coverLetterSettingsJsonToForm,
   createDefaultCoverLetterSettingsForm,
   createDefaultCoverLetterSettingsJson,
+  getCoverLetterSettingsRedisKey,
   normalizeCoverLetterSettings,
   normalizeMessageFormat,
   normalizeOpenRouterModel,

@@ -6,6 +6,7 @@ import { SparklesIcon } from "lucide-react";
 import type { CoverLetterHistoryItem } from "@/entities/cover-letter-history";
 import type { CoverLetterSettingsForm } from "@/entities/cover-letter-settings";
 import { Button } from "@/shared/ui/button";
+import { UserMenu } from "@/widgets/app-navigation";
 
 import { useCoverLetterWorkspace } from "../model/use-cover-letter-workspace";
 import { AdditionalWishesCard } from "./additional-wishes-card";
@@ -18,9 +19,11 @@ import { VacancyCard } from "./vacancy-card";
 export function CoverLetterWorkspace({
   initialHistory = [],
   initialSettings,
+  userEmail,
 }: {
   initialHistory?: CoverLetterHistoryItem[];
   initialSettings: CoverLetterSettingsForm;
+  userEmail: string;
 }) {
   const workspace = useCoverLetterWorkspace({
     initialHistory,
@@ -56,6 +59,7 @@ export function CoverLetterWorkspace({
               onClear={workspace.clearHistory}
               onRepeat={workspace.repeatHistoryItem}
             />
+            <UserMenu email={userEmail} />
           </div>
         </header>
 

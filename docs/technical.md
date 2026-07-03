@@ -15,6 +15,8 @@ Coverletter is a Next.js application that generates cover letters from a detaile
 | Styling | Tailwind CSS 4 |
 | AI gateway | OpenRouter |
 | Default model | `openai/gpt-5.4-mini` |
+| Auth | Auth.js credentials provider with email confirmation |
+| Email | Resend |
 | Database | Upstash Redis through Vercel Marketplace |
 | Package manager | pnpm |
 | File organization | Simple feature folders |
@@ -43,36 +45,39 @@ Saved settings are persisted separately from the profile so the factual profile 
 
 Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, generation duration, vacancy text, language, message format, additional wishes, and rules used for that generation.
 
+Authentication is email/password based. New users receive a confirmation email before they can sign in. Password reset links are sent through Resend.
+
 ## Profile Source
 
 MVP source flow:
 
-1. The app reads the JSON profile from Upstash Redis.
-2. If the JSON key does not exist, the app migrates legacy Markdown from `profile:default:markdown` when present.
-3. If no saved profile exists, the app loads the bundled empty template from [Markdown profile structure](profile-markdown.md) and converts it to JSON in memory.
-4. After the user edits and saves the profile, the current JSON object is written back to Upstash Redis.
-5. Cover letter generation uses Markdown generated from the current saved JSON profile.
-6. Browser `localStorage` may be used only as a draft cache, not as the source of truth.
+1. The app authenticates the user and normalizes the session email.
+2. The app reads the user-scoped JSON profile from Upstash Redis.
+3. For `niko.tolstik@gmail.com` only, if the scoped key does not exist, the app copies the legacy default JSON or Markdown profile into the scoped key.
+4. If no saved profile exists, the app loads the bundled empty template from [Markdown profile structure](profile-markdown.md) and converts it to JSON in memory.
+5. After the user edits and saves the profile, the current JSON object is written back to Upstash Redis.
+6. Cover letter generation uses Markdown generated from the current saved JSON profile.
+7. Browser `localStorage` may be used only as a draft cache, not as the source of truth.
 
 Canonical Redis key:
 
 ```txt
-profile:default:json
+profile:user:niko.tolstik%40gmail.com:json
 ```
 
 Canonical Redis key for saved cover letter settings:
 
 ```txt
-cover-letter-settings:default:json
+cover-letter-settings:user:niko.tolstik%40gmail.com:json
 ```
 
 Canonical Redis key for generated cover letter history:
 
 ```txt
-cover-letter-history:default:json
+cover-letter-history:user:niko.tolstik%40gmail.com:json
 ```
 
-See [Storage decision](storage.md) for the full persistence plan. This keeps the MVP simple while avoiding a committed personal profile file.
+The legacy `*:default:*` keys are read only as an owner migration source. See [Storage decision](storage.md) for the full persistence plan.
 
 ## Project Structure
 
@@ -118,7 +123,7 @@ The user prompt should include:
 
 Generation should be implemented behind a server boundary so provider keys never reach the browser. The initial implementation can use a Route Handler such as `src/app/api/cover-letter/route.ts` or a Server Action, with the provider hidden behind `src/shared/api/ai`.
 
-Profile reads/writes should also stay behind a server boundary. There is no app-level account system because this is a private single-user tool.
+Profile, settings, and history reads/writes should also stay behind a server boundary and must use the authenticated user's scoped Redis keys.
 
 ## AI Provider
 
@@ -138,6 +143,10 @@ OPENROUTER_API_KEY=
 OPENROUTER_MODEL=openai/gpt-5.4-mini
 OPENROUTER_SITE_URL=
 OPENROUTER_APP_TITLE=Coverletter
+AUTH_SECRET=
+AUTH_URL=
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=
 ```
 
 The Redis client also accepts `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; use whichever pair the Vercel integration provides.

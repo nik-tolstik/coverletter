@@ -2,6 +2,8 @@ export {
   EMPTY_PROFILE_MARKDOWN,
   PROFILE_JSON_REDIS_KEY,
   PROFILE_MARKDOWN_REDIS_KEY,
+  getProfileJsonRedisKey,
+  getProfileMarkdownRedisKey,
 } from "./model/constants";
 export {
   createEmptyCompany,

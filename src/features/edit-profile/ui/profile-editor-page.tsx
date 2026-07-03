@@ -5,6 +5,7 @@ import { ChevronDownIcon, DownloadIcon } from "lucide-react";
 import type { ProfileFormState } from "@/entities/profile";
 import { useProfileEditor } from "@/features/edit-profile/model/use-profile-editor";
 import { Button } from "@/shared/ui/button";
+import { UserMenu } from "@/widgets/app-navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,8 +22,10 @@ import { StandaloneProjectsSection } from "./sections/standalone-projects-sectio
 
 export function ProfileEditorPage({
   initialProfile,
+  userEmail,
 }: {
   initialProfile: ProfileFormState;
+  userEmail: string;
 }) {
   const editor = useProfileEditor(initialProfile);
 
@@ -33,20 +36,23 @@ export function ProfileEditorPage({
           <div className="flex flex-col gap-2">
             <h1 className="font-heading text-xl font-semibold">Профиль</h1>
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button type="button" variant="outline">
-                <DownloadIcon data-icon="inline-start" />
-                Экспорт
-                <ChevronDownIcon data-icon="inline-end" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={editor.exportProfileMarkdown}>
-                Markdown
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button type="button" variant="outline">
+                  <DownloadIcon data-icon="inline-start" />
+                  Экспорт
+                  <ChevronDownIcon data-icon="inline-end" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onSelect={editor.exportProfileMarkdown}>
+                  Markdown
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <UserMenu email={userEmail} />
+          </div>
         </header>
 
         <IdentitySection
