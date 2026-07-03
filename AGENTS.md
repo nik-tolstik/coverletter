@@ -13,10 +13,11 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - For profile data, prompt context, or Markdown conversion changes, read `docs/profile-markdown.md`.
 - For persistence, Redis, or environment variable changes, read `docs/storage.md`.
 - For MVP planning context, read the relevant files in `docs/plans/mvp/`.
-- Use `pnpm` for package management and scripts.
+- Use `pnpm` for package management and scripts. Run project commands as `pnpm <command>` (for example, `pnpm lint` or `pnpm build`) unless a task explicitly requires pinning a package manager version.
 - Keep all code comments in English.
 - Do not use emoji in code, UI copy, documentation, comments, commits, or agent responses.
 - Do not add descriptions for fields, blocks, or UI sections unless the user explicitly asks for them.
+- Add tasteful, lightweight animations for new or changed interactive and dynamic UI components whenever it improves clarity or perceived quality. Prefer existing project patterns such as Motion-based list/item transitions or simple CSS transitions, and keep animations subtle.
 - Do not add `prefers-reduced-motion` or `motion-reduce` support unless the user explicitly asks for it.
 - Verify work in a browser only when the user explicitly asks to check the result in a browser.
 - When browser verification is explicitly requested, use the project Playwright setup with `pnpm test:e2e` or `pnpm exec playwright`; do not rely on a system Chrome path.
