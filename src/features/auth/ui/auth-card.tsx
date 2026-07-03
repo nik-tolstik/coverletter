@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
+import { EyeIcon, EyeOffIcon } from "lucide-react";
 
 import {
   forgotPasswordAction,
@@ -73,10 +74,9 @@ function LoginForm() {
         </Field>
         <Field>
           <FieldLabel htmlFor="login-password">Пароль</FieldLabel>
-          <Input
+          <PasswordInput
             id="login-password"
             name="password"
-            type="password"
             autoComplete="current-password"
           />
         </Field>
@@ -121,10 +121,9 @@ function RegisterForm() {
         </Field>
         <Field>
           <FieldLabel htmlFor="register-password">Пароль</FieldLabel>
-          <Input
+          <PasswordInput
             id="register-password"
             name="password"
-            type="password"
             autoComplete="new-password"
           />
         </Field>
@@ -132,10 +131,9 @@ function RegisterForm() {
           <FieldLabel htmlFor="register-repeat-password">
             Повторите пароль
           </FieldLabel>
-          <Input
+          <PasswordInput
             id="register-repeat-password"
             name="repeatPassword"
-            type="password"
             autoComplete="new-password"
           />
         </Field>
@@ -201,10 +199,9 @@ function ResetPasswordForm({ token }: { token: string }) {
       <FieldGroup>
         <Field>
           <FieldLabel htmlFor="reset-password">Новый пароль</FieldLabel>
-          <Input
+          <PasswordInput
             id="reset-password"
             name="password"
-            type="password"
             autoComplete="new-password"
           />
         </Field>
@@ -212,10 +209,9 @@ function ResetPasswordForm({ token }: { token: string }) {
           <FieldLabel htmlFor="reset-repeat-password">
             Повторите пароль
           </FieldLabel>
-          <Input
+          <PasswordInput
             id="reset-repeat-password"
             name="repeatPassword"
-            type="password"
             autoComplete="new-password"
           />
         </Field>
@@ -244,6 +240,42 @@ function AuthMessage({
     <p className="rounded-2xl bg-destructive/10 px-3 py-2 text-sm text-destructive">
       {state.message}
     </p>
+  );
+}
+
+function PasswordInput({
+  id,
+  name,
+  autoComplete,
+}: {
+  id: string;
+  name: string;
+  autoComplete: string;
+}) {
+  const [isVisible, setIsVisible] = useState(false);
+  const Icon = isVisible ? EyeOffIcon : EyeIcon;
+
+  return (
+    <div className="relative">
+      <Input
+        id={id}
+        name={name}
+        type={isVisible ? "text" : "password"}
+        autoComplete={autoComplete}
+        className="pr-11"
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="icon-sm"
+        aria-label={isVisible ? "Скрыть пароль" : "Показать пароль"}
+        title={isVisible ? "Скрыть пароль" : "Показать пароль"}
+        className="absolute top-1/2 right-1 -translate-y-1/2 rounded-full text-muted-foreground hover:text-foreground"
+        onClick={() => setIsVisible((current) => !current)}
+      >
+        <Icon />
+      </Button>
+    </div>
   );
 }
 
