@@ -46,11 +46,12 @@ export function StandaloneProjectsSection({
       contentId="profile-projects-content"
       contentClassName="flex flex-col gap-8"
     >
-      <AnimatedList className="flex flex-col gap-8">
+      <AnimatedList className="-mb-8 flex flex-col">
         {projects.map((project, projectIndex) => (
           <AnimatedListItem
             key={keys[projectIndex]}
             itemKey={keys[projectIndex]}
+            spacing="2rem"
           >
             <StandaloneProjectEditor
               project={project}
@@ -61,7 +62,11 @@ export function StandaloneProjectsSection({
           </AnimatedListItem>
         ))}
         {!projects.length && (
-          <AnimatedListItem key="empty-projects" itemKey="empty-projects">
+          <AnimatedListItem
+            key="empty-projects"
+            itemKey="empty-projects"
+            spacing="2rem"
+          >
             <EmptySectionState />
           </AnimatedListItem>
         )}

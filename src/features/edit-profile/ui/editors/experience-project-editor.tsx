@@ -22,12 +22,14 @@ export function ExperienceProjectEditor({
   project,
   companyIndex,
   projectIndex,
+  canRemove,
   onChange,
   onRemove,
 }: {
   project: ExperienceProjectForm;
   companyIndex: number;
   projectIndex: number;
+  canRemove: boolean;
   onChange: (project: ExperienceProjectForm) => void;
   onRemove: () => void;
 }) {
@@ -78,6 +80,7 @@ export function ExperienceProjectEditor({
             size="icon-sm"
             onClick={onRemove}
             aria-label={`Удалить проект ${projectTitle}`}
+            disabled={!canRemove}
           >
             <Trash2Icon />
           </Button>

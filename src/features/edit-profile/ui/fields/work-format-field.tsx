@@ -7,6 +7,7 @@ import {
   parseWorkFormatValues,
   workFormatOptions,
 } from "@/features/edit-profile/model/work-format-values";
+import { cn } from "@/shared/lib/utils";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldLabel } from "@/shared/ui/field";
 
@@ -38,14 +39,21 @@ export function WorkFormatField({ value, onChange }: WorkFormatFieldProps) {
               type="button"
               variant={isSelected ? "default" : "outline"}
               size="sm"
+              className="gap-0"
               onClick={() => toggleFormat(item.value)}
               aria-pressed={isSelected}
               key={item.value}
             >
-              {isSelected && (
-                <CheckIcon data-icon="inline-start" aria-hidden="true" />
-              )}
-              {item.label}
+              <span
+                aria-hidden="true"
+                className={cn(
+                  "flex h-4 shrink-0 items-center overflow-hidden transition-[width,opacity,margin-right] duration-100 ease-out",
+                  isSelected ? "mr-1 w-4 opacity-100" : "mr-0 w-0 opacity-0",
+                )}
+              >
+                <CheckIcon className="size-4" />
+              </span>
+              <span>{item.label}</span>
             </Button>
           );
         })}

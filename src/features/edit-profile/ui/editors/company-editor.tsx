@@ -18,6 +18,7 @@ import { FieldGroup } from "@/shared/ui/field";
 
 import { CollapsibleContent } from "../collapsible-content";
 import { CompanyDatesField } from "../fields/company-dates-field";
+import { TextAreaField } from "../fields/text-area-field";
 import { TextInputField } from "../fields/text-input-field";
 import { ExperienceProjectEditor } from "./experience-project-editor";
 
@@ -142,18 +143,27 @@ export function CompanyEditor({
               value={company.domain}
               onChange={(value) => updateCompanyField("domain", value)}
             />
+            <TextAreaField
+              id={`company-${index}-description`}
+              label="Описание"
+              placeholder="Коротко опишите продукт, команду, задачи или контекст компании."
+              value={company.description}
+              onChange={(value) => updateCompanyField("description", value)}
+            />
           </FieldGroup>
 
-          <AnimatedList className="flex flex-col gap-5">
+          <AnimatedList className="-mb-5 flex flex-col">
             {company.projects.map((project, projectIndex) => (
               <AnimatedListItem
                 key={keys[projectIndex]}
                 itemKey={keys[projectIndex]}
+                spacing="1.25rem"
               >
                 <ExperienceProjectEditor
                   project={project}
                   companyIndex={index}
                   projectIndex={projectIndex}
+                  canRemove={company.projects.length > 1}
                   onChange={(nextProject) =>
                     onProjectChange(projectIndex, nextProject)
                   }

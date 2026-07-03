@@ -97,6 +97,8 @@ Company-level experience with project-level detail inside each company.
 - Role: Frontend Engineer
 - Dates: 2022-2025
 - Domain: fintech / ecommerce / SaaS / internal tools
+- Description:
+  Built product interfaces for customer-facing and internal workflows.
 
 #### Project: Project Name
 
@@ -169,6 +171,7 @@ These can be added after MVP without changing the core prompt contract:
 - Role:
 - Dates:
 - Domain:
+- Description:
 
 #### Project: Project Name
 

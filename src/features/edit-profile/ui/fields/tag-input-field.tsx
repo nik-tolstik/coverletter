@@ -93,8 +93,8 @@ export function TagInputField({
   return (
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
-      <div className="flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-4xl bg-input/30 px-2 py-1 transition-colors focus-within:bg-input/50">
-        <AnimatedItemsPresence>
+      <div className="relative flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-4xl bg-input/30 px-2 py-1 transition-colors focus-within:bg-input/50">
+        <AnimatedItemsPresence mode="popLayout">
           {tags.map((tag, index) => (
             <AnimatedInlineItem
               key={keys[index]}

@@ -20,7 +20,7 @@ export type ProfileFormState = {
 };
 
 export type ProfileJsonState = {
-  schemaVersion: 5;
+  schemaVersion: 6;
   identity: {
     name: string;
     email: string;
@@ -56,6 +56,7 @@ export type ExperienceCompanyForm = {
   role: string;
   dates: string;
   domain: string;
+  description: string;
   projects: ExperienceProjectForm[];
 };
 
@@ -133,6 +134,7 @@ export function createEmptyCompany(): ExperienceCompanyForm {
     role: "",
     dates: "",
     domain: "",
+    description: "",
     projects: [createEmptyExperienceProject()],
   };
 }
@@ -217,7 +219,7 @@ export function normalizeProfileJson(
   const links = readRecord(input.links);
 
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     identity: {
       name: readString(identity.name),
       email: readString(identity.email) || writeLineValue(fallbackEmail),
@@ -261,7 +263,7 @@ export function profileJsonToForm(profile: ProfileJsonState): ProfileFormState {
 
 export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     identity: {
       name: writeLineValue(profile.identity.name),
       email: writeLineValue(profile.identity.email),
@@ -283,6 +285,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
       role: writeLineValue(company.role),
       dates: writeLineValue(company.dates),
       domain: writeLineValue(company.domain),
+      description: writeTextValue(company.description),
       projects: ensureExperienceProjects(company.projects).map((project) => ({
         name: writeLineValue(project.name),
         role: writeLineValue(project.role),
@@ -399,6 +402,7 @@ function readExperience(section: string) {
       role: readLabel(labels, "Role", "Роль") ?? "",
       dates: readLabel(labels, "Dates", "Даты") ?? "",
       domain: readLabel(labels, "Domain", "Домен") ?? "",
+      description: readLabeledBlock(companyMeta, "Description", "Описание"),
       projects: ensureExperienceProjects(
         projectBlocks.map(({ title: projectTitle, body: projectBody }) => {
           const projectLabels = readLabeledBullets(projectBody);
@@ -564,6 +568,7 @@ function writeExperience(companies: ExperienceCompanyForm[]) {
 - Role: ${writeLineValue(company.role)}
 - Dates: ${writeLineValue(company.dates)}
 - Domain: ${writeLineValue(company.domain)}
+${writeLabeledBlock("Description", company.description)}
 
 ${ensureExperienceProjects(company.projects)
   .map((project) => `#### Project: ${writeHeadingValue(project.name || "Project Name")}
@@ -780,6 +785,7 @@ function readExperienceJson(
         role: readString(company.role),
         dates: readString(company.dates),
         domain: readString(company.domain),
+        description: readText(company.description),
         projects: readExperienceProjectsJson(company.projects),
       };
     });

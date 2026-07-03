@@ -59,11 +59,12 @@ export function ExperienceSection({
       contentId="profile-experience-content"
       contentClassName="flex flex-col gap-8"
     >
-      <AnimatedList className="flex flex-col gap-8">
+      <AnimatedList className="-mb-8 flex flex-col">
         {experience.map((company, companyIndex) => (
           <AnimatedListItem
             key={keys[companyIndex]}
             itemKey={keys[companyIndex]}
+            spacing="2rem"
           >
             <CompanyEditor
               company={company}
@@ -81,7 +82,11 @@ export function ExperienceSection({
           </AnimatedListItem>
         ))}
         {!experience.length && (
-          <AnimatedListItem key="empty-experience" itemKey="empty-experience">
+          <AnimatedListItem
+            key="empty-experience"
+            itemKey="empty-experience"
+            spacing="2rem"
+          >
             <EmptySectionState />
           </AnimatedListItem>
         )}

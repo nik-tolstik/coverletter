@@ -46,11 +46,12 @@ export function SkillsSection({
       contentId="profile-skills-content"
       contentClassName="flex flex-col gap-5"
     >
-      <AnimatedList className="flex flex-col gap-5">
+      <AnimatedList className="-mb-5 flex flex-col">
         {skills.map((category, categoryIndex) => (
           <AnimatedListItem
             key={keys[categoryIndex]}
             itemKey={keys[categoryIndex]}
+            spacing="1.25rem"
           >
             <SkillCategoryEditor
               category={category}
@@ -63,7 +64,11 @@ export function SkillsSection({
           </AnimatedListItem>
         ))}
         {!skills.length && (
-          <AnimatedListItem key="empty-skills" itemKey="empty-skills">
+          <AnimatedListItem
+            key="empty-skills"
+            itemKey="empty-skills"
+            spacing="1.25rem"
+          >
             <EmptySectionState />
           </AnimatedListItem>
         )}

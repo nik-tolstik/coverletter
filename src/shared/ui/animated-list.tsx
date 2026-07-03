@@ -1,42 +1,24 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { forwardRef, useId, useState, type ReactNode } from "react";
 import {
   AnimatePresence,
   motion,
   type Transition,
-  type Variants,
 } from "motion/react";
 
 import { cn } from "@/shared/lib/utils";
 
 export type AnimatedListVariant = "quiet" | "accordion" | "pop";
+type AnimatedListSpacing = number | string;
 
 const smoothEase = [0.16, 1, 0.3, 1] as [number, number, number, number];
 const flowEase = [0.22, 1, 0.36, 1] as [number, number, number, number];
 
-const animatedListVariants = {
-  quiet: {
-    initial: { opacity: 0, y: 8, scale: 0.98 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: -6, scale: 0.98 },
-  },
-  accordion: {
-    initial: { opacity: 0, height: 0 },
-    animate: { opacity: 1, height: "auto" },
-    exit: { opacity: 0, height: 0 },
-  },
-  pop: {
-    initial: { opacity: 0, y: 2, scale: 0.92 },
-    animate: { opacity: 1, y: 0, scale: 1 },
-    exit: { opacity: 0, y: -2, scale: 0.95 },
-  },
-} satisfies Record<AnimatedListVariant, Variants>;
-
 const animatedListTransitions = {
-  quiet: { duration: 0.28, ease: smoothEase },
-  accordion: { duration: 0.24, ease: flowEase },
-  pop: { type: "spring", stiffness: 520, damping: 34, mass: 0.7 },
+  quiet: { duration: 0.26, ease: smoothEase },
+  accordion: { duration: 0.22, ease: flowEase },
+  pop: { type: "spring", stiffness: 680, damping: 42, mass: 0.55 },
 } satisfies Record<AnimatedListVariant, Transition>;
 
 type AnimatedListKeyState = {
@@ -52,9 +34,9 @@ export function AnimatedList({
   children: ReactNode;
 }) {
   return (
-    <motion.div layout className={className}>
+    <div className={className}>
       <AnimatePresence initial={false}>{children}</AnimatePresence>
-    </motion.div>
+    </div>
   );
 }
 
@@ -62,12 +44,14 @@ export function AnimatedListItem({
   itemKey,
   variant = "quiet",
   as = "div",
+  spacing = 0,
   className,
   children,
 }: {
   itemKey: string;
   variant?: AnimatedListVariant;
   as?: "div" | "section";
+  spacing?: AnimatedListSpacing;
   className?: string;
   children: ReactNode;
 }) {
@@ -75,47 +59,101 @@ export function AnimatedListItem({
 
   return (
     <Component
-      layout
       key={itemKey}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={animatedListVariants[variant]}
+      initial={getAnimatedListInitialState(variant)}
+      animate={getAnimatedListAnimateState(variant, spacing)}
+      exit={getAnimatedListExitState(variant)}
       transition={animatedListTransitions[variant]}
-      className={cn(variant === "accordion" && "overflow-hidden", className)}
+      className={cn(variant !== "pop" && "overflow-hidden", className)}
     >
       {children}
     </Component>
   );
 }
 
-export function AnimatedInlineItem({
-  itemKey,
-  className,
-  children,
-}: {
+type AnimatedInlineItemProps = {
   itemKey: string;
   className?: string;
   children: ReactNode;
-}) {
+};
+
+export const AnimatedInlineItem = forwardRef<
+  HTMLSpanElement,
+  AnimatedInlineItemProps
+>(function AnimatedInlineItem({ itemKey, className, children }, ref) {
   return (
     <motion.span
+      ref={ref}
       layout
       key={itemKey}
-      initial="initial"
-      animate="animate"
-      exit="exit"
-      variants={animatedListVariants.pop}
+      initial={getAnimatedListInitialState("pop")}
+      animate={getAnimatedListAnimateState("pop", 0)}
+      exit={getAnimatedListExitState("pop")}
       transition={animatedListTransitions.pop}
       className={className}
     >
       {children}
     </motion.span>
   );
+});
+
+function getAnimatedListInitialState(variant: AnimatedListVariant) {
+  if (variant === "pop") {
+    return { opacity: 0, y: 2, scale: 0.92 };
+  }
+
+  if (variant === "accordion") {
+    return { opacity: 0, height: 0, marginBottom: 0 };
+  }
+
+  return { opacity: 0, y: 8, scale: 0.98, height: 0, marginBottom: 0 };
 }
 
-export function AnimatedItemsPresence({ children }: { children: ReactNode }) {
-  return <AnimatePresence initial={false}>{children}</AnimatePresence>;
+function getAnimatedListAnimateState(
+  variant: AnimatedListVariant,
+  spacing: AnimatedListSpacing,
+) {
+  if (variant === "pop") {
+    return { opacity: 1, y: 0, scale: 1 };
+  }
+
+  if (variant === "accordion") {
+    return { opacity: 1, height: "auto", marginBottom: spacing };
+  }
+
+  return {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    height: "auto",
+    marginBottom: spacing,
+  };
+}
+
+function getAnimatedListExitState(variant: AnimatedListVariant) {
+  if (variant === "pop") {
+    return { opacity: 0, y: -2, scale: 0.95 };
+  }
+
+  if (variant === "accordion") {
+    return { opacity: 0, height: 0, marginBottom: 0 };
+  }
+
+  return { opacity: 0, y: -4, scale: 0.98, height: 0, marginBottom: 0 };
+}
+
+export function AnimatedItemsPresence({
+  mode = "sync",
+  children,
+}: {
+  mode?: "sync" | "popLayout" | "wait";
+  children: ReactNode;
+}) {
+  return (
+    <AnimatePresence initial={false} mode={mode}>
+      {children}
+    </AnimatePresence>
+  );
 }
 
 export function useAnimatedListKeys(itemCount: number, keyPrefix: string) {

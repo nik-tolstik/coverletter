@@ -28,6 +28,7 @@ const companyFields = [
   "role",
   "dates",
   "domain",
+  "description",
 ] as const satisfies readonly Exclude<
   keyof ProfileFormState["experience"][number],
   "projects"

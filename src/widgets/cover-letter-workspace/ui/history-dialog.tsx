@@ -156,9 +156,9 @@ function HistoryList({
   onSelect: HistoryItemAction;
 }) {
   return (
-    <AnimatedList className="flex flex-col gap-2">
+    <AnimatedList className="-mb-2 flex flex-col">
       {history.map((item) => (
-        <AnimatedListItem key={item.id} itemKey={item.id}>
+        <AnimatedListItem key={item.id} itemKey={item.id} spacing="0.5rem">
           <button
             type="button"
             onClick={() => onSelect(item)}
@@ -186,7 +186,11 @@ function HistoryList({
         </AnimatedListItem>
       ))}
       {!history.length && (
-        <AnimatedListItem key="empty-history" itemKey="empty-history">
+        <AnimatedListItem
+          key="empty-history"
+          itemKey="empty-history"
+          spacing="0.5rem"
+        >
           <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
             <HistoryIcon className="size-5" />
             История появится после первой успешной генерации.
