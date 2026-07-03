@@ -40,9 +40,9 @@ export function AppBottomNavigation() {
   return (
     <nav
       aria-label="Основная навигация"
-      className="fixed inset-x-0 bottom-0 z-50 px-4 pb-[max(0.6rem,env(safe-area-inset-bottom))] pointer-events-none"
+      className="fixed bottom-0 left-1/2 z-50 w-screen -translate-x-1/2 px-4 pb-[max(0.6rem,env(safe-area-inset-bottom))] pointer-events-none"
     >
-      <div className="mx-auto w-full max-w-[336px] rounded-[1.6rem] border border-white/65 bg-card/55 p-1 shadow-[0_14px_48px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-2xl supports-[backdrop-filter]:bg-card/45 pointer-events-auto">
+      <div className="mx-auto w-full max-w-84 rounded-[1.6rem] border border-white/65 bg-card/55 p-1 shadow-[0_14px_48px_rgba(15,23,42,0.18),inset_0_1px_0_rgba(255,255,255,0.7)] backdrop-blur-2xl supports-[backdrop-filter]:bg-card/45 pointer-events-auto">
         <div className="relative grid grid-cols-2">
           <span
             aria-hidden
