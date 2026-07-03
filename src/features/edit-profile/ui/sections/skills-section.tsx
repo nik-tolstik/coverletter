@@ -3,6 +3,11 @@
 import { PlusIcon } from "lucide-react";
 
 import type { SkillCategoryForm } from "@/entities/profile";
+import {
+  AnimatedList,
+  AnimatedListItem,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import { Button } from "@/shared/ui/button";
 
 import { EmptySectionState } from "../empty-section-state";
@@ -20,30 +25,54 @@ export function SkillsSection({
   onChange: (index: number, category: SkillCategoryForm) => void;
   onRemove: (index: number) => void;
 }) {
+  const { keys, insertKey, removeKey } = useAnimatedListKeys(
+    skills.length,
+    "skill-category",
+  );
+
+  function handleAdd() {
+    insertKey();
+    onAdd();
+  }
+
+  function handleRemove(index: number) {
+    removeKey(index);
+    onRemove(index);
+  }
+
   return (
     <ProfileSectionCard
       title="Навыки"
       contentId="profile-skills-content"
       contentClassName="flex flex-col gap-5"
     >
-      {skills.length ? (
-        skills.map((category, categoryIndex) => (
-          <SkillCategoryEditor
-            key={categoryIndex}
-            category={category}
-            index={categoryIndex}
-            onChange={(nextCategory) => onChange(categoryIndex, nextCategory)}
-            onRemove={() => onRemove(categoryIndex)}
-          />
-        ))
-      ) : (
-        <EmptySectionState />
-      )}
+      <AnimatedList className="flex flex-col gap-5">
+        {skills.map((category, categoryIndex) => (
+          <AnimatedListItem
+            key={keys[categoryIndex]}
+            itemKey={keys[categoryIndex]}
+          >
+            <SkillCategoryEditor
+              category={category}
+              index={categoryIndex}
+              onChange={(nextCategory) =>
+                onChange(categoryIndex, nextCategory)
+              }
+              onRemove={() => handleRemove(categoryIndex)}
+            />
+          </AnimatedListItem>
+        ))}
+        {!skills.length && (
+          <AnimatedListItem key="empty-skills" itemKey="empty-skills">
+            <EmptySectionState />
+          </AnimatedListItem>
+        )}
+      </AnimatedList>
       <Button
         type="button"
         variant="outline"
         className="self-end"
-        onClick={onAdd}
+        onClick={handleAdd}
       >
         <PlusIcon data-icon="inline-start" />
         Добавить категорию

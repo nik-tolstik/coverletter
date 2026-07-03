@@ -8,6 +8,11 @@ import {
   parseTagInput,
 } from "@/features/edit-profile/model/tag-values";
 import { Badge } from "@/shared/ui/badge";
+import {
+  AnimatedInlineItem,
+  AnimatedItemsPresence,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import { Field, FieldLabel } from "@/shared/ui/field";
 
 export type TagInputFieldProps = {
@@ -27,6 +32,7 @@ export function TagInputField({
 }: TagInputFieldProps) {
   const [draft, setDraft] = useState("");
   const tags = normalizeTags(value);
+  const { keys, insertKeys, removeKey } = useAnimatedListKeys(tags.length, id);
 
   function commitTags(nextTags: string[]) {
     onChange(normalizeTags(nextTags));
@@ -39,11 +45,15 @@ export function TagInputField({
       return;
     }
 
-    commitTags([...tags, ...nextTags]);
+    const nextNormalizedTags = normalizeTags([...tags, ...nextTags]);
+
+    insertKeys(nextNormalizedTags.length - tags.length);
+    commitTags(nextNormalizedTags);
     setDraft("");
   }
 
   function removeTag(index: number) {
+    removeKey(index);
     commitTags(tags.filter((_, currentIndex) => currentIndex !== index));
   }
 
@@ -71,7 +81,10 @@ export function TagInputField({
     const nextDraft = parts.at(-1) ?? "";
 
     if (completedTags.length) {
-      commitTags([...tags, ...completedTags]);
+      const nextNormalizedTags = normalizeTags([...tags, ...completedTags]);
+
+      insertKeys(nextNormalizedTags.length - tags.length);
+      commitTags(nextNormalizedTags);
     }
 
     setDraft(nextDraft);
@@ -81,23 +94,30 @@ export function TagInputField({
     <Field>
       <FieldLabel htmlFor={id}>{label}</FieldLabel>
       <div className="flex min-h-9 w-full flex-wrap items-center gap-1.5 rounded-4xl bg-input/30 px-2 py-1 transition-colors focus-within:bg-input/50">
-        {tags.map((tag, index) => (
-          <Badge
-            variant="secondary"
-            className="h-6 gap-1 rounded-4xl px-2 text-sm"
-            key={`${tag}-${index}`}
-          >
-            {tag}
-            <button
-              type="button"
-              aria-label={`Удалить ${tag}`}
-              className="rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
-              onClick={() => removeTag(index)}
+        <AnimatedItemsPresence>
+          {tags.map((tag, index) => (
+            <AnimatedInlineItem
+              key={keys[index]}
+              itemKey={keys[index]}
+              className="inline-flex"
             >
-              <XIcon className="size-3" />
-            </button>
-          </Badge>
-        ))}
+              <Badge
+                variant="secondary"
+                className="h-6 gap-1 rounded-4xl px-2 text-sm"
+              >
+                {tag}
+                <button
+                  type="button"
+                  aria-label={`Удалить ${tag}`}
+                  className="rounded-full text-muted-foreground outline-none transition-colors hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-1"
+                  onClick={() => removeTag(index)}
+                >
+                  <XIcon className="size-3" />
+                </button>
+              </Badge>
+            </AnimatedInlineItem>
+          ))}
+        </AnimatedItemsPresence>
         <input
           id={id}
           value={draft}

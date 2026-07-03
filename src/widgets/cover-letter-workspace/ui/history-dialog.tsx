@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import type { CoverLetterHistoryItem } from "@/entities/cover-letter-history";
 import { cn } from "@/shared/lib/utils";
 import { Badge } from "@/shared/ui/badge";
+import { AnimatedList, AnimatedListItem } from "@/shared/ui/animated-list";
 import { Button } from "@/shared/ui/button";
 import {
   Dialog,
@@ -154,45 +155,45 @@ function HistoryList({
   history: CoverLetterHistoryItem[];
   onSelect: HistoryItemAction;
 }) {
-  if (!history.length) {
-    return (
-      <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
-        <HistoryIcon className="size-5" />
-        История появится после первой успешной генерации.
-      </div>
-    );
-  }
-
   return (
-    <div className="flex flex-col gap-2">
+    <AnimatedList className="flex flex-col gap-2">
       {history.map((item) => (
-        <button
-          type="button"
-          onClick={() => onSelect(item)}
-          className="flex w-full flex-col gap-2 rounded-xl bg-input/20 p-3 text-left transition-colors hover:bg-input/40 focus-visible:bg-input/40 focus-visible:outline-none"
-          key={item.id}
-        >
-          <span className="flex min-w-0 items-start justify-between gap-3">
-            <span className="line-clamp-2 text-sm font-medium">
-              {item.title}
+        <AnimatedListItem key={item.id} itemKey={item.id}>
+          <button
+            type="button"
+            onClick={() => onSelect(item)}
+            className="flex w-full flex-col gap-2 rounded-xl bg-input/20 p-3 text-left transition-colors hover:bg-input/40 focus-visible:bg-input/40 focus-visible:outline-none"
+          >
+            <span className="flex min-w-0 items-start justify-between gap-3">
+              <span className="line-clamp-2 text-sm font-medium">
+                {item.title}
+              </span>
+              <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
+                {formatHistoryDate(item.createdAt)}
+              </span>
             </span>
-            <span className="shrink-0 font-mono text-[11px] text-muted-foreground">
-              {formatHistoryDate(item.createdAt)}
+            <span className="flex flex-wrap gap-1.5">
+              <Badge variant="outline">{getLanguageLabel(item.language)}</Badge>
+              <Badge variant="outline">
+                {getMessageFormatLabel(item.messageFormat)}
+              </Badge>
+              <Badge variant="outline">{getModelLabel(item.model)}</Badge>
             </span>
-          </span>
-          <span className="flex flex-wrap gap-1.5">
-            <Badge variant="outline">{getLanguageLabel(item.language)}</Badge>
-            <Badge variant="outline">
-              {getMessageFormatLabel(item.messageFormat)}
-            </Badge>
-            <Badge variant="outline">{getModelLabel(item.model)}</Badge>
-          </span>
-          <span className="line-clamp-2 text-xs leading-5 text-muted-foreground">
-            {item.coverLetter}
-          </span>
-        </button>
+            <span className="line-clamp-2 text-xs leading-5 text-muted-foreground">
+              {item.coverLetter}
+            </span>
+          </button>
+        </AnimatedListItem>
       ))}
-    </div>
+      {!history.length && (
+        <AnimatedListItem key="empty-history" itemKey="empty-history">
+          <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
+            <HistoryIcon className="size-5" />
+            История появится после первой успешной генерации.
+          </div>
+        </AnimatedListItem>
+      )}
+    </AnimatedList>
   );
 }
 

@@ -6,6 +6,11 @@ import type {
   ExperienceCompanyForm,
   ExperienceProjectForm,
 } from "@/entities/profile";
+import {
+  AnimatedList,
+  AnimatedListItem,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import { Button } from "@/shared/ui/button";
 
 import { EmptySectionState } from "../empty-section-state";
@@ -33,37 +38,59 @@ export function ExperienceSection({
   onProjectAdd: (companyIndex: number) => void;
   onProjectRemove: (companyIndex: number, projectIndex: number) => void;
 }) {
+  const { keys, insertKey, removeKey } = useAnimatedListKeys(
+    experience.length,
+    "company",
+  );
+
+  function handleAdd() {
+    insertKey();
+    onAdd();
+  }
+
+  function handleRemove(index: number) {
+    removeKey(index);
+    onRemove(index);
+  }
+
   return (
     <ProfileSectionCard
       title="Опыт"
       contentId="profile-experience-content"
       contentClassName="flex flex-col gap-8"
     >
-      {experience.length ? (
-        experience.map((company, companyIndex) => (
-          <CompanyEditor
-            key={companyIndex}
-            company={company}
-            index={companyIndex}
-            onChange={(nextCompany) => onChange(companyIndex, nextCompany)}
-            onRemove={() => onRemove(companyIndex)}
-            onProjectChange={(projectIndex, nextProject) =>
-              onProjectChange(companyIndex, projectIndex, nextProject)
-            }
-            onProjectAdd={() => onProjectAdd(companyIndex)}
-            onProjectRemove={(projectIndex) =>
-              onProjectRemove(companyIndex, projectIndex)
-            }
-          />
-        ))
-      ) : (
-        <EmptySectionState />
-      )}
+      <AnimatedList className="flex flex-col gap-8">
+        {experience.map((company, companyIndex) => (
+          <AnimatedListItem
+            key={keys[companyIndex]}
+            itemKey={keys[companyIndex]}
+          >
+            <CompanyEditor
+              company={company}
+              index={companyIndex}
+              onChange={(nextCompany) => onChange(companyIndex, nextCompany)}
+              onRemove={() => handleRemove(companyIndex)}
+              onProjectChange={(projectIndex, nextProject) =>
+                onProjectChange(companyIndex, projectIndex, nextProject)
+              }
+              onProjectAdd={() => onProjectAdd(companyIndex)}
+              onProjectRemove={(projectIndex) =>
+                onProjectRemove(companyIndex, projectIndex)
+              }
+            />
+          </AnimatedListItem>
+        ))}
+        {!experience.length && (
+          <AnimatedListItem key="empty-experience" itemKey="empty-experience">
+            <EmptySectionState />
+          </AnimatedListItem>
+        )}
+      </AnimatedList>
       <Button
         type="button"
         variant="outline"
         className="w-full"
-        onClick={onAdd}
+        onClick={handleAdd}
       >
         <PlusIcon data-icon="inline-start" />
         Добавить компанию

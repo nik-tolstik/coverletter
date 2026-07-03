@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronDownIcon, DownloadIcon } from "lucide-react";
+import { AnimatePresence } from "motion/react";
 
 import type { ProfileFormState } from "@/entities/profile";
 import { useProfileEditor } from "@/features/edit-profile/model/use-profile-editor";
@@ -86,13 +87,16 @@ export function ProfileEditorPage({
         />
       </div>
 
-      {editor.isDirty && (
-        <SaveChangesBar
-          isPending={editor.isPending}
-          onCancel={editor.cancelChanges}
-          onSave={editor.saveProfile}
-        />
-      )}
+      <AnimatePresence initial={false}>
+        {editor.isDirty && (
+          <SaveChangesBar
+            key="save-changes-bar"
+            isPending={editor.isPending}
+            onCancel={editor.cancelChanges}
+            onSave={editor.saveProfile}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

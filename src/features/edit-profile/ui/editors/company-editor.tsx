@@ -8,6 +8,11 @@ import type {
   ExperienceProjectForm,
 } from "@/entities/profile";
 import { cn } from "@/shared/lib/utils";
+import {
+  AnimatedList,
+  AnimatedListItem,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import { Button } from "@/shared/ui/button";
 import { FieldGroup } from "@/shared/ui/field";
 
@@ -40,6 +45,10 @@ export function CompanyEditor({
   const contentId = `company-${index}-content`;
   const companyTitle = company.companyName || `Компания ${index + 1}`;
   const companyMeta = [company.role, company.dates].filter(Boolean).join(" · ");
+  const { keys, insertKey, removeKey } = useAnimatedListKeys(
+    company.projects.length,
+    `company-${index}-project`,
+  );
 
   function updateCompanyField(
     key: keyof Omit<ExperienceCompanyForm, "projects">,
@@ -49,6 +58,16 @@ export function CompanyEditor({
       ...company,
       [key]: value,
     });
+  }
+
+  function handleProjectAdd() {
+    insertKey();
+    onProjectAdd();
+  }
+
+  function handleProjectRemove(projectIndex: number) {
+    removeKey(projectIndex);
+    onProjectRemove(projectIndex);
   }
 
   return (
@@ -125,23 +144,29 @@ export function CompanyEditor({
             />
           </FieldGroup>
 
-          {company.projects.map((project, projectIndex) => (
-            <ExperienceProjectEditor
-              key={projectIndex}
-              project={project}
-              companyIndex={index}
-              projectIndex={projectIndex}
-              onChange={(nextProject) =>
-                onProjectChange(projectIndex, nextProject)
-              }
-              onRemove={() => onProjectRemove(projectIndex)}
-            />
-          ))}
+          <AnimatedList className="flex flex-col gap-5">
+            {company.projects.map((project, projectIndex) => (
+              <AnimatedListItem
+                key={keys[projectIndex]}
+                itemKey={keys[projectIndex]}
+              >
+                <ExperienceProjectEditor
+                  project={project}
+                  companyIndex={index}
+                  projectIndex={projectIndex}
+                  onChange={(nextProject) =>
+                    onProjectChange(projectIndex, nextProject)
+                  }
+                  onRemove={() => handleProjectRemove(projectIndex)}
+                />
+              </AnimatedListItem>
+            ))}
+          </AnimatedList>
           <Button
             type="button"
             variant="outline"
             className="self-start"
-            onClick={onProjectAdd}
+            onClick={handleProjectAdd}
           >
             <PlusIcon data-icon="inline-start" />
             Добавить проект

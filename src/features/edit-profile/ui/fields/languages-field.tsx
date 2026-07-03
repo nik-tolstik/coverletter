@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { PlusIcon, Trash2Icon } from "lucide-react";
 
 import {
@@ -13,6 +14,11 @@ import { removeAt } from "@/features/edit-profile/model/collection";
 import { Button } from "@/shared/ui/button";
 import { Field, FieldLabel } from "@/shared/ui/field";
 import { Input } from "@/shared/ui/input";
+import {
+  AnimatedList,
+  AnimatedListItem,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import {
   Select,
   SelectContent,
@@ -28,9 +34,19 @@ export type LanguagesFieldProps = {
 };
 
 export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
-  const languages = parseLanguagesValue(value);
+  const [draftLanguageCount, setDraftLanguageCount] = useState(0);
+  const parsedLanguages = parseLanguagesValue(value);
+  const languages = [
+    ...parsedLanguages,
+    ...Array.from({ length: draftLanguageCount }, createEmptyLanguageEntry),
+  ];
+  const { keys, insertKey, removeKey } = useAnimatedListKeys(
+    languages.length,
+    "language",
+  );
 
   function commit(nextLanguages: LanguageEntry[]) {
+    setDraftLanguageCount(countEmptyLanguageEntries(nextLanguages));
     onChange(formatLanguagesValue(nextLanguages));
   }
 
@@ -51,10 +67,12 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
   }
 
   function addLanguage() {
-    commit([...languages, createEmptyLanguageEntry()]);
+    insertKey();
+    setDraftLanguageCount((currentCount) => currentCount + 1);
   }
 
   function removeLanguage(index: number) {
+    removeKey(index);
     commit(removeAt(languages, index, createEmptyLanguageEntry()));
   }
 
@@ -67,11 +85,13 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
           Добавить
         </Button>
       </div>
-      <div className="flex flex-col gap-3">
+      <AnimatedList className="flex flex-col gap-3">
         {languages.map((item, index) => (
-          <div
+          <AnimatedListItem
+            key={keys[index]}
+            itemKey={keys[index]}
+            variant="accordion"
             className="grid items-center gap-3 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
-            key={index}
           >
             <Field>
               <Input
@@ -115,9 +135,13 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
             >
               <Trash2Icon />
             </Button>
-          </div>
+          </AnimatedListItem>
         ))}
-      </div>
+      </AnimatedList>
     </Field>
   );
+}
+
+function countEmptyLanguageEntries(languages: LanguageEntry[]) {
+  return languages.filter((item) => !item.language && !item.level).length;
 }

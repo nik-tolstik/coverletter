@@ -3,6 +3,11 @@
 import { PlusIcon } from "lucide-react";
 
 import type { StandaloneProjectForm } from "@/entities/profile";
+import {
+  AnimatedList,
+  AnimatedListItem,
+  useAnimatedListKeys,
+} from "@/shared/ui/animated-list";
 import { Button } from "@/shared/ui/button";
 
 import { EmptySectionState } from "../empty-section-state";
@@ -20,30 +25,52 @@ export function StandaloneProjectsSection({
   onChange: (index: number, project: StandaloneProjectForm) => void;
   onRemove: (index: number) => void;
 }) {
+  const { keys, insertKey, removeKey } = useAnimatedListKeys(
+    projects.length,
+    "standalone-project",
+  );
+
+  function handleAdd() {
+    insertKey();
+    onAdd();
+  }
+
+  function handleRemove(index: number) {
+    removeKey(index);
+    onRemove(index);
+  }
+
   return (
     <ProfileSectionCard
       title="Отдельные проекты"
       contentId="profile-projects-content"
       contentClassName="flex flex-col gap-8"
     >
-      {projects.length ? (
-        projects.map((project, projectIndex) => (
-          <StandaloneProjectEditor
-            key={projectIndex}
-            project={project}
-            index={projectIndex}
-            onChange={(nextProject) => onChange(projectIndex, nextProject)}
-            onRemove={() => onRemove(projectIndex)}
-          />
-        ))
-      ) : (
-        <EmptySectionState />
-      )}
+      <AnimatedList className="flex flex-col gap-8">
+        {projects.map((project, projectIndex) => (
+          <AnimatedListItem
+            key={keys[projectIndex]}
+            itemKey={keys[projectIndex]}
+          >
+            <StandaloneProjectEditor
+              project={project}
+              index={projectIndex}
+              onChange={(nextProject) => onChange(projectIndex, nextProject)}
+              onRemove={() => handleRemove(projectIndex)}
+            />
+          </AnimatedListItem>
+        ))}
+        {!projects.length && (
+          <AnimatedListItem key="empty-projects" itemKey="empty-projects">
+            <EmptySectionState />
+          </AnimatedListItem>
+        )}
+      </AnimatedList>
       <Button
         type="button"
         variant="outline"
         className="w-full"
-        onClick={onAdd}
+        onClick={handleAdd}
       >
         <PlusIcon data-icon="inline-start" />
         Добавить проект
