@@ -132,6 +132,12 @@
   }
 }
 
+@layer utilities {
+  body[data-scroll-locked] .scroll-lock-right-gap {
+    right: var(--removed-body-scroll-bar-size, 0px);
+  }
+}
+
 @keyframes typing-caret {
   0%,
   45% {
