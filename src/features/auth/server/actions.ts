@@ -1,6 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { AuthError } from "next-auth";
 
 import { signIn } from "@/auth";
 import {
@@ -29,12 +30,25 @@ export async function loginAction(
     };
   }
 
-  const result = await signIn("credentials", {
-    email: credentials.email,
-    password: credentials.password,
-    redirect: false,
-    redirectTo: "/",
-  });
+  let result: unknown;
+
+  try {
+    result = await signIn("credentials", {
+      email: credentials.email,
+      password: credentials.password,
+      redirect: false,
+      redirectTo: "/",
+    });
+  } catch (error) {
+    if (error instanceof AuthError) {
+      return {
+        status: "error",
+        message: "Неверный email, пароль или почта не подтверждена.",
+      };
+    }
+
+    throw error;
+  }
 
   if (typeof result === "string" && result.includes("error=")) {
     return {
