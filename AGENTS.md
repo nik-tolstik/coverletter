@@ -24,12 +24,6 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Verify work in a browser only when the user explicitly asks to check the result in a browser.
 - When browser verification is explicitly requested, use the project Playwright setup with `pnpm test:e2e` or `pnpm exec playwright`; do not rely on a system Chrome path.
 
-# Linear
-
-- This repository has a Linear project: [Coverletter MVP](https://linear.app/nikita-tolstik/project/coverletter-mvp-f70a32a2c6e9).
-- When the project scope, milestones, implementation status, or planning context changes, update the Linear project accordingly.
-- Before creating new Linear issues, milestones, or status updates, check the existing Linear project so work stays attached to `Coverletter MVP` instead of creating duplicates.
-
 # Project Structure
 
 ```txt
