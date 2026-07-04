@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
@@ -14,30 +14,74 @@ import {
   type ProfileFormState,
   type SkillCategoryForm,
   type StandaloneProjectForm,
+  useProfileQuery,
+  useSaveProfileMutation,
+  useUploadAvatarMutation,
 } from "@/entities/profile";
+import type { ProfileState } from "@/entities/profile";
 
 import { removeAt, removeAtOrEmpty, serializeProfile } from "./collection";
 
 export type IdentityKey = keyof ProfileFormState["identity"];
 export type LinkKey = keyof ProfileFormState["links"];
 
-type ProfileSaveResponse = {
-  error?: string;
-  profile?: ProfileFormState;
-};
+const fallbackMutationError = "Что-то пошло не так.";
 
-export function useProfileEditor(initialProfile: ProfileFormState) {
+export function useProfileEditor(
+  userEmail: string,
+  initialProfileState: ProfileState,
+) {
+  const profileQuery = useProfileQuery({
+    initialProfile: initialProfileState,
+    userEmail,
+  });
+  const initialProfile =
+    profileQuery.data?.profile ?? initialProfileState.profile;
   const [profile, setProfile] = useState(() => initialProfile);
   const [savedProfile, setSavedProfile] = useState(() => initialProfile);
   const [saveError, setSaveError] = useState<string>();
-  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
   const [avatarImageVersion, setAvatarImageVersion] = useState(0);
-  const [isPending, startTransition] = useTransition();
   const latestProfileRef = useRef(profile);
   const profileSnapshot = serializeProfile(profile);
   const savedProfileSnapshot = serializeProfile(savedProfile);
   const isDirty = profileSnapshot !== savedProfileSnapshot;
+  const saveProfileMutation = useSaveProfileMutation(userEmail);
+  const uploadAvatarMutation = useUploadAvatarMutation(userEmail);
+
+  function hasUnsavedChangesAfterSnapshot(snapshot: string) {
+    return serializeProfile(latestProfileRef.current) !== snapshot;
+  }
+
+  function applySavedProfile(
+    nextProfileState: ProfileState,
+    snapshot: string,
+    options: {
+      syncAvatarIntoDraft: boolean;
+    },
+  ) {
+    const nextSavedProfile = nextProfileState.profile;
+
+    setSavedProfile(nextSavedProfile);
+    setProfile((currentProfile) => {
+      if (serializeProfile(currentProfile) === snapshot) {
+        return nextSavedProfile;
+      }
+
+      if (!options.syncAvatarIntoDraft) {
+        return currentProfile;
+      }
+
+      return {
+        ...currentProfile,
+        identity: {
+          ...currentProfile.identity,
+          avatarUrl: nextSavedProfile.identity.avatarUrl,
+        },
+      };
+    });
+    setSaveError(undefined);
+  }
 
   useEffect(() => {
     latestProfileRef.current = profile;
@@ -54,56 +98,30 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   }, [avatarPreviewUrl]);
 
   function saveProfile() {
-    if (!isDirty || isPending) {
+    if (!isDirty || saveProfileMutation.isPending) {
       return;
     }
 
     const profileToSave = profile;
     const saveSnapshot = serializeProfile(profileToSave);
 
-    startTransition(async () => {
-      try {
-        const response = await fetch("/api/profile", {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            profile: profileToSave,
-          }),
+    saveProfileMutation.mutate(profileToSave, {
+      onSuccess: (nextProfileState) => {
+        applySavedProfile(nextProfileState, saveSnapshot, {
+          syncAvatarIntoDraft: false,
         });
-        const data = await readProfileSaveResponse(response);
-
-        if (!response.ok) {
-          const message = data.error ?? "Профиль не сохранён.";
-
-          setSaveError(message);
-          toast.error(message);
-          return;
-        }
-
-        const nextSavedProfile = data.profile ?? profileToSave;
-        const hasNewUnsavedChanges =
-          serializeProfile(latestProfileRef.current) !== saveSnapshot;
-
-        setSavedProfile(nextSavedProfile);
-        setProfile((currentProfile) =>
-          serializeProfile(currentProfile) === saveSnapshot
-            ? nextSavedProfile
-            : currentProfile,
-        );
-        setSaveError(undefined);
         toast.success(
-          hasNewUnsavedChanges
+          hasUnsavedChangesAfterSnapshot(saveSnapshot)
             ? "Профиль сохранён. Есть новые несохранённые изменения."
             : "Профиль сохранён.",
         );
-      } catch {
-        const message = "Что-то пошло не так.";
+      },
+      onError: (error) => {
+        const message = getMutationErrorMessage(error);
 
         setSaveError(message);
         toast.error(message);
-      }
+      },
     });
   }
 
@@ -133,80 +151,42 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
     }
   }
 
-  async function uploadAvatar(file: File) {
-    if (isAvatarUploading) {
+  function uploadAvatar(file: File) {
+    if (uploadAvatarMutation.isPending) {
       return;
     }
 
-    let shouldKeepPreview = false;
     const profileToSave = latestProfileRef.current;
     const uploadSnapshot = serializeProfile(profileToSave);
     const nextAvatarPreviewUrl = URL.createObjectURL(file);
-    const formData = new FormData();
 
-    formData.append("file", file);
-    formData.append("profile", JSON.stringify(profileToSave));
     setAvatarPreviewUrl(nextAvatarPreviewUrl);
-    setIsAvatarUploading(true);
+    uploadAvatarMutation.mutate(
+      {
+        file,
+        profile: profileToSave,
+      },
+      {
+        onSuccess: (nextProfileState) => {
+          applySavedProfile(nextProfileState, uploadSnapshot, {
+            syncAvatarIntoDraft: true,
+          });
+          setAvatarImageVersion((currentVersion) => currentVersion + 1);
+          toast.success(
+            hasUnsavedChangesAfterSnapshot(uploadSnapshot)
+              ? "Аватар загружен. Есть новые несохранённые изменения."
+              : "Аватар загружен.",
+          );
+        },
+        onError: (error) => {
+          const message = getMutationErrorMessage(error);
 
-    try {
-      const response = await fetch("/api/profile/avatar", {
-        method: "PUT",
-        body: formData,
-      });
-      const data = await readProfileSaveResponse(response);
-
-      if (!response.ok) {
-        const message = data.error ?? "Аватар не загружен.";
-
-        setSaveError(message);
-        toast.error(message);
-        return;
-      }
-
-      const nextSavedProfile = data.profile ?? profileToSave;
-      const hasNewUnsavedChanges =
-        serializeProfile(latestProfileRef.current) !== uploadSnapshot;
-
-      setSavedProfile(nextSavedProfile);
-      setProfile((currentProfile) =>
-        serializeProfile(currentProfile) === uploadSnapshot
-          ? nextSavedProfile
-          : {
-              ...currentProfile,
-              identity: {
-                ...currentProfile.identity,
-                avatarUrl: nextSavedProfile.identity.avatarUrl,
-              },
-            },
-      );
-      setSaveError(undefined);
-      setAvatarImageVersion((currentVersion) => currentVersion + 1);
-      shouldKeepPreview = true;
-      window.dispatchEvent(
-        new CustomEvent("profile-avatar-updated", {
-          detail: {
-            avatarUrl: nextSavedProfile.identity.avatarUrl,
-          },
-        }),
-      );
-      toast.success(
-        hasNewUnsavedChanges
-          ? "Аватар загружен. Есть новые несохранённые изменения."
-          : "Аватар загружен.",
-      );
-    } catch {
-      const message = "Что-то пошло не так.";
-
-      setSaveError(message);
-      toast.error(message);
-    } finally {
-      if (!shouldKeepPreview) {
-        setAvatarPreviewUrl("");
-      }
-
-      setIsAvatarUploading(false);
-    }
+          setAvatarPreviewUrl("");
+          setSaveError(message);
+          toast.error(message);
+        },
+      },
+    );
   }
 
   function clearAvatarPreview() {
@@ -360,8 +340,8 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   return {
     profile,
     isDirty,
-    isPending,
-    isAvatarUploading,
+    isPending: saveProfileMutation.isPending,
+    isAvatarUploading: uploadAvatarMutation.isPending,
     avatarPreviewUrl,
     avatarImageVersion,
     saveError,
@@ -387,16 +367,6 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   };
 }
 
-async function readProfileSaveResponse(response: Response) {
-  const contentType = response.headers.get("content-type");
-
-  if (!contentType?.includes("application/json")) {
-    return {};
-  }
-
-  try {
-    return (await response.json()) as ProfileSaveResponse;
-  } catch {
-    return {};
-  }
+function getMutationErrorMessage(error: Error) {
+  return error.message || fallbackMutationError;
 }

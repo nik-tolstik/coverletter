@@ -14,7 +14,18 @@ export async function POST(request: Request) {
     return Response.json({ error: "Требуется вход." }, { status: 401 });
   }
 
-  const payload = generateCoverLetterRequestSchema.safeParse(await request.json());
+  let requestBody: unknown;
+
+  try {
+    requestBody = await request.json();
+  } catch {
+    return Response.json(
+      { error: "Укажите текст вакансии и язык письма." },
+      { status: 400 },
+    );
+  }
+
+  const payload = generateCoverLetterRequestSchema.safeParse(requestBody);
 
   if (!payload.success) {
     return Response.json(
@@ -46,12 +57,12 @@ export async function POST(request: Request) {
       model: generation.model,
     });
   } catch (error) {
-    const message =
-      error instanceof Error
-        ? error.message
-        : "Не удалось создать письмо.";
+    console.error("Cover letter generation failed", error);
 
-    return Response.json({ error: message }, { status: 502 });
+    return Response.json(
+      { error: "Не удалось создать письмо." },
+      { status: 502 },
+    );
   }
 }
 

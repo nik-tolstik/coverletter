@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@lobehub/icons": "^5.10.1",
+    "@tanstack/react-query": "^5.101.2",
     "@upstash/redis": "^1.38.0",
     "@vercel/blob": "^2.5.0",
     "class-variance-authority": "^0.7.1",
@@ -34,6 +35,7 @@
   "devDependencies": {
     "@playwright/test": "^1.61.1",
     "@tailwindcss/postcss": "^4",
+    "@tanstack/react-query-devtools": "^5.101.2",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

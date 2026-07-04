@@ -13,10 +13,13 @@ export function ProfilePage({
     <main className="min-h-dvh bg-background">
       <div className="mx-auto flex w-full max-w-190 flex-col gap-5 px-4 pt-5 pb-[calc(5rem+env(safe-area-inset-bottom))]">
         <AppHeader
-          userAvatarUrl={initialProfile.profile.identity.avatarUrl}
+          initialProfile={initialProfile}
           userEmail={userEmail}
         />
-        <ProfileEditorPage initialProfile={initialProfile.profile} />
+        <ProfileEditorPage
+          initialProfile={initialProfile}
+          userEmail={userEmail}
+        />
       </div>
     </main>
   );

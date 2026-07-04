@@ -29,7 +29,16 @@ export async function PUT(request: Request) {
     return Response.json({ error: "Требуется вход." }, { status: 401 });
   }
 
-  const payload = await request.json();
+  let payload: unknown;
+
+  try {
+    payload = await request.json();
+  } catch {
+    return Response.json(
+      { error: "Настройки письма не могут быть пустыми." },
+      { status: 400 },
+    );
+  }
 
   if (!isRecord(payload) || !isRecord(payload.settings)) {
     return Response.json(

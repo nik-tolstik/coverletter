@@ -3,7 +3,7 @@
 import { ChevronDownIcon, DownloadIcon } from "lucide-react";
 import { AnimatePresence } from "motion/react";
 
-import type { ProfileFormState } from "@/entities/profile";
+import type { ProfileState } from "@/entities/profile";
 import { useProfileEditor } from "@/features/edit-profile/model/use-profile-editor";
 import { Button } from "@/shared/ui/button";
 import {
@@ -22,10 +22,12 @@ import { StandaloneProjectsSection } from "./sections/standalone-projects-sectio
 
 export function ProfileEditorPage({
   initialProfile,
+  userEmail,
 }: {
-  initialProfile: ProfileFormState;
+  initialProfile: ProfileState;
+  userEmail: string;
 }) {
-  const editor = useProfileEditor(initialProfile);
+  const editor = useProfileEditor(userEmail, initialProfile);
 
   return (
     <>

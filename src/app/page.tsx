@@ -16,10 +16,10 @@ export default async function Home() {
 
   return (
     <HomePage
-      initialProfileAvatarUrl={profile.profile.identity.avatarUrl}
+      initialHistory={history}
+      initialProfile={profile}
+      initialSettings={settings}
       userEmail={user.email}
-      initialSettings={settings.settings}
-      initialHistory={history.history}
     />
   );
 }

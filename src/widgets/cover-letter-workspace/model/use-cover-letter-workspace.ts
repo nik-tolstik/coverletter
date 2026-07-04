@@ -1,18 +1,13 @@
 "use client";
 
-import {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  useTransition,
-} from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import {
-  MAX_COVER_LETTER_HISTORY_ITEMS,
+  useClearCoverLetterHistoryMutation,
+  useCoverLetterHistoryQuery,
   type CoverLetterHistoryItem,
+  type CoverLetterHistoryState,
 } from "@/entities/cover-letter-history";
 import {
   DEFAULT_COVER_LETTER_LANGUAGE,
@@ -20,7 +15,12 @@ import {
   DEFAULT_MESSAGE_FORMAT,
   DEFAULT_OPENROUTER_MODEL,
   type CoverLetterSettingsForm,
+  type CoverLetterSettingsState,
+  useCoverLetterSettingsQuery,
+  useSaveCoverLetterSettingsMutation,
 } from "@/entities/cover-letter-settings";
+import { useGenerateCoverLetterMutation } from "@/features/generate-cover-letter";
+import { ApiError } from "@/shared/api/http-client";
 
 import {
   createGenerationReadySound,
@@ -36,41 +36,62 @@ type SaveQueueState = {
 };
 
 export function useCoverLetterWorkspace({
+  userEmail,
   initialHistory,
   initialSettings,
 }: {
-  initialHistory: CoverLetterHistoryItem[];
-  initialSettings: CoverLetterSettingsForm;
+  userEmail: string;
+  initialHistory: CoverLetterHistoryState;
+  initialSettings: CoverLetterSettingsState;
 }) {
-  const [savedSettings, setSavedSettings] = useState(() =>
-    getSavedLetterSettings(initialSettings),
-  );
-  const [history, setHistory] = useState(initialHistory);
+  const initialSettingsForm = initialSettings.settings;
+
+  const settingsQuery = useCoverLetterSettingsQuery({
+    initialSettings,
+    userEmail,
+  });
+  const historyQuery = useCoverLetterHistoryQuery({
+    initialHistory,
+    userEmail,
+  });
+  const { mutateAsync: saveSettingsMutateAsync } =
+    useSaveCoverLetterSettingsMutation(userEmail);
+  const {
+    mutateAsync: generateLetterMutateAsync,
+    isPending: isGenerating,
+  } = useGenerateCoverLetterMutation(userEmail);
+  const {
+    mutateAsync: clearHistoryMutateAsync,
+    isPending: isClearingHistory,
+  } = useClearCoverLetterHistoryMutation(userEmail);
+
   const [vacancyText, setVacancyText] = useState("");
   const [model, setModel] = useState(
-    initialSettings.model || DEFAULT_OPENROUTER_MODEL,
+    initialSettingsForm.model || DEFAULT_OPENROUTER_MODEL,
   );
   const [language, setLanguage] = useState(
-    initialSettings.language || DEFAULT_COVER_LETTER_LANGUAGE,
+    initialSettingsForm.language || DEFAULT_COVER_LETTER_LANGUAGE,
   );
   const [additionalWishes, setAdditionalWishes] = useState("");
   const [messageFormat, setMessageFormat] = useState(
-    initialSettings.messageFormat ?? DEFAULT_MESSAGE_FORMAT,
+    initialSettingsForm.messageFormat ?? DEFAULT_MESSAGE_FORMAT,
   );
   const [coverLetterRules, setCoverLetterRules] = useState(
-    initialSettings.coverLetterRules.join("\n") ||
+    initialSettingsForm.coverLetterRules.join("\n") ||
       DEFAULT_COVER_LETTER_RULES.join("\n"),
   );
   const [coverLetter, setCoverLetter] = useState("");
-  const [isGenerating, startGenerating] = useTransition();
-  const [, startSaving] = useTransition();
-  const [isClearingHistory, startClearingHistory] = useTransition();
   const saveQueueRef = useRef<SaveQueueState>({
     isRunning: false,
     pendingSettings: null,
   });
   const generationReadySoundRef = useRef<GenerationReadySound | null>(null);
 
+  const history = historyQuery.data.history;
+  const savedSettings = useMemo(
+    () => getSavedLetterSettings(settingsQuery.data.settings),
+    [settingsQuery.data.settings],
+  );
   const hasLetterContent = isGenerating || Boolean(coverLetter);
   const canGenerateLetter = vacancyText.trim().length > 0;
   const currentSettings = useMemo<LetterGenerationSettings>(
@@ -101,42 +122,39 @@ export function useCoverLetterWorkspace({
     [coverLetterRules, language, messageFormat, model],
   );
   const isSettingsDirty =
-    serializeSettings(currentSavedSettings) !==
-    serializeSettings(savedSettings);
+    serializeSettings(currentSavedSettings) !== serializeSettings(savedSettings);
+
+  const flushSettingsSaveQueue = useCallback(async () => {
+    if (saveQueueRef.current.isRunning) {
+      return;
+    }
+
+    saveQueueRef.current.isRunning = true;
+
+    try {
+      while (saveQueueRef.current.pendingSettings) {
+        const nextSettings = saveQueueRef.current.pendingSettings;
+        saveQueueRef.current.pendingSettings = null;
+
+        try {
+          await saveSettingsMutateAsync(nextSettings);
+        } catch (error) {
+          toast.error(
+            readApiErrorMessage(error, "Настройки письма не сохранены."),
+          );
+        }
+      }
+    } finally {
+      saveQueueRef.current.isRunning = false;
+    }
+  }, [saveSettingsMutateAsync]);
 
   const saveSettings = useCallback(
     (settingsToSave: SavedLetterSettings) => {
       saveQueueRef.current.pendingSettings = settingsToSave;
-
-      if (saveQueueRef.current.isRunning) {
-        return;
-      }
-
-      saveQueueRef.current.isRunning = true;
-
-      startSaving(async () => {
-        try {
-          while (saveQueueRef.current.pendingSettings) {
-            const nextSettings = saveQueueRef.current.pendingSettings;
-            saveQueueRef.current.pendingSettings = null;
-
-            try {
-              const savedState = await saveLetterSettings(nextSettings);
-              setSavedSettings(getSavedLetterSettings(savedState.settings));
-            } catch (error) {
-              const message =
-                error instanceof Error
-                  ? error.message
-                  : "Настройки письма не сохранены.";
-              toast.error(message);
-            }
-          }
-        } finally {
-          saveQueueRef.current.isRunning = false;
-        }
-      });
+      void flushSettingsSaveQueue();
     },
-    [startSaving],
+    [flushSettingsSaveQueue],
   );
 
   useEffect(() => {
@@ -152,59 +170,29 @@ export function useCoverLetterWorkspace({
   }, [currentSavedSettings, isSettingsDirty, saveSettings]);
 
   const generateLetter = useCallback(
-    (settings: LetterGenerationSettings = currentSettings) => {
+    async (settings: LetterGenerationSettings = currentSettings) => {
       const generationReadySound =
         generationReadySoundRef.current ?? createGenerationReadySound();
       generationReadySoundRef.current = generationReadySound;
       generationReadySound.unlock();
 
-      startGenerating(async () => {
-        try {
-          const response = await fetch("/api/cover-letter", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify(settings),
-          });
-          const data = (await response.json()) as {
-            coverLetter?: string;
-            historyItem?: CoverLetterHistoryItem | null;
-            historySaved?: boolean;
-            error?: string;
-          };
+      try {
+        const data = await generateLetterMutateAsync(settings);
 
-          if (!response.ok || !data.coverLetter) {
-            toast.error(data.error ?? "Не удалось создать письмо.");
-            return;
-          }
+        setCoverLetter(data.coverLetter);
+        generationReadySound.play();
 
-          setCoverLetter(data.coverLetter);
-          generationReadySound.play();
-
-          if (data.historyItem) {
-            const historyItem = data.historyItem;
-
-            setHistory((currentHistory) =>
-              [
-                historyItem,
-                ...currentHistory.filter((item) => item.id !== historyItem.id),
-              ].slice(0, MAX_COVER_LETTER_HISTORY_ITEMS),
-            );
-          }
-
-          if (data.historySaved === false) {
-            toast.warning("Письмо создано, но история не сохранена.");
-            return;
-          }
-
-          toast.success("Письмо создано.");
-        } catch {
-          toast.error("Не удалось создать письмо.");
+        if (data.historySaved === false) {
+          toast.warning("Письмо создано, но история не сохранена.");
+          return;
         }
-      });
+
+        toast.success("Письмо создано.");
+      } catch (error) {
+        toast.error(readApiErrorMessage(error, "Не удалось создать письмо."));
+      }
     },
-    [currentSettings, startGenerating],
+    [currentSettings, generateLetterMutateAsync],
   );
 
   const repeatHistoryItem = useCallback(
@@ -226,7 +214,7 @@ export function useCoverLetterWorkspace({
       setVacancyText(item.vacancyText);
       setAdditionalWishes(item.additionalWishes);
       setCoverLetter(item.coverLetter);
-      generateLetter(nextSettings);
+      void generateLetter(nextSettings);
     },
     [generateLetter],
   );
@@ -266,28 +254,14 @@ export function useCoverLetterWorkspace({
   }, []);
 
   const clearHistory = useCallback(() => {
-    startClearingHistory(async () => {
-      try {
-        const response = await fetch("/api/cover-letter-history", {
-          method: "DELETE",
-        });
-        const data = (await response.json()) as {
-          history?: CoverLetterHistoryItem[];
-          error?: string;
-        };
-
-        if (!response.ok || !data.history) {
-          toast.error(data.error ?? "История писем не очищена.");
-          return;
-        }
-
-        setHistory(data.history);
+    clearHistoryMutateAsync()
+      .then(() => {
         toast.success("История писем очищена.");
-      } catch {
-        toast.error("История писем не очищена.");
-      }
-    });
-  }, [startClearingHistory]);
+      })
+      .catch((error: unknown) => {
+        toast.error(readApiErrorMessage(error, "История писем не очищена."));
+      });
+  }, [clearHistoryMutateAsync]);
 
   return {
     history,
@@ -316,24 +290,8 @@ export function useCoverLetterWorkspace({
   };
 }
 
-async function saveLetterSettings(settings: SavedLetterSettings) {
-  const response = await fetch("/api/cover-letter-settings", {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ settings }),
-  });
-  const data = (await response.json()) as {
-    settings?: CoverLetterSettingsForm;
-    error?: string;
-  };
-
-  if (!response.ok || !data.settings) {
-    throw new Error(data.error ?? "Настройки письма не сохранены.");
-  }
-
-  return { settings: data.settings };
+function readApiErrorMessage(error: unknown, fallback: string) {
+  return error instanceof ApiError ? error.message : fallback;
 }
 
 function serializeSettings(settings: SavedLetterSettings) {

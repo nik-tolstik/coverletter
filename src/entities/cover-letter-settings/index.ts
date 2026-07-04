@@ -21,3 +21,7 @@ export type {
   CoverLetterSettingsState,
   MessageFormat,
 } from "./model/settings";
+export {
+  useCoverLetterSettingsQuery,
+  useSaveCoverLetterSettingsMutation,
+} from "./model/use-cover-letter-settings";

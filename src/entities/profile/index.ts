@@ -29,3 +29,8 @@ export type {
   SkillCategoryForm,
   StandaloneProjectForm,
 } from "./model/structured-profile";
+export {
+  useProfileQuery,
+  useSaveProfileMutation,
+  useUploadAvatarMutation,
+} from "./model/use-profile";

@@ -13,3 +13,7 @@ export type {
   CoverLetterHistoryState,
   CreateCoverLetterHistoryItemInput,
 } from "./model/history";
+export {
+  useClearCoverLetterHistoryMutation,
+  useCoverLetterHistoryQuery,
+} from "./model/use-cover-letter-history";

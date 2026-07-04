@@ -3,8 +3,8 @@
 import { LogOutIcon, UserRoundIcon } from "lucide-react";
 import Image from "next/image";
 import { signOut } from "next-auth/react";
-import { useEffect, useState } from "react";
 
+import { useProfileQuery, type ProfileState } from "@/entities/profile";
 import { Button } from "@/shared/ui/button";
 import {
   DropdownMenu,
@@ -14,29 +14,22 @@ import {
 } from "@/shared/ui/dropdown-menu";
 
 export function UserMenu({
-  avatarUrl,
-  email,
+  initialProfile,
+  userEmail,
 }: {
-  avatarUrl?: string;
-  email: string;
+  initialProfile: ProfileState;
+  userEmail: string;
 }) {
-  const [uploadedAvatarUrl, setUploadedAvatarUrl] = useState("");
-  const currentAvatarUrl = uploadedAvatarUrl || avatarUrl || "";
-  const avatarSrc = currentAvatarUrl ? "/api/profile/avatar" : "";
-
-  useEffect(() => {
-    function handleAvatarUpdated(event: Event) {
-      const avatarEvent = event as CustomEvent<{ avatarUrl?: string }>;
-
-      setUploadedAvatarUrl(avatarEvent.detail?.avatarUrl ?? "");
-    }
-
-    window.addEventListener("profile-avatar-updated", handleAvatarUpdated);
-
-    return () => {
-      window.removeEventListener("profile-avatar-updated", handleAvatarUpdated);
-    };
-  }, []);
+  const profileQuery = useProfileQuery({
+    initialProfile,
+    userEmail,
+  });
+  const currentProfile = profileQuery.data ?? initialProfile;
+  const currentAvatarUrl = currentProfile.profile.identity.avatarUrl;
+  const avatarVersion = currentProfile.updatedAt || currentAvatarUrl;
+  const avatarSrc = currentAvatarUrl
+    ? `/api/profile/avatar?v=${encodeURIComponent(avatarVersion)}`
+    : "";
 
   return (
     <DropdownMenu>
@@ -46,12 +39,12 @@ export function UserMenu({
           variant="outline"
           size="icon"
           aria-label="Меню пользователя"
-          title={email}
+          title={userEmail}
           className="overflow-hidden rounded-full"
         >
           {currentAvatarUrl ? (
             <Image
-              key={currentAvatarUrl}
+              key={avatarVersion}
               src={avatarSrc}
               alt=""
               width={36}

@@ -2,8 +2,8 @@
 
 import { SparklesIcon } from "lucide-react";
 
-import type { CoverLetterHistoryItem } from "@/entities/cover-letter-history";
-import type { CoverLetterSettingsForm } from "@/entities/cover-letter-settings";
+import type { CoverLetterHistoryState } from "@/entities/cover-letter-history";
+import type { CoverLetterSettingsState } from "@/entities/cover-letter-settings";
 import { Button } from "@/shared/ui/button";
 
 import { useCoverLetterWorkspace } from "../model/use-cover-letter-workspace";
@@ -15,15 +15,18 @@ import { SettingsCard } from "./settings-card";
 import { VacancyCard } from "./vacancy-card";
 
 export function CoverLetterWorkspace({
-  initialHistory = [],
+  initialHistory,
   initialSettings,
+  userEmail,
 }: {
-  initialHistory?: CoverLetterHistoryItem[];
-  initialSettings: CoverLetterSettingsForm;
+  initialHistory: CoverLetterHistoryState;
+  initialSettings: CoverLetterSettingsState;
+  userEmail: string;
 }) {
   const workspace = useCoverLetterWorkspace({
     initialHistory,
     initialSettings,
+    userEmail,
   });
 
   return (
