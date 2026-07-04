@@ -54,10 +54,6 @@ export function AvatarUploader({
 
   function handleCropOpenChange(open: boolean) {
     setIsCropOpen(open);
-
-    if (!open) {
-      clearCropSelection();
-    }
   }
 
   return (
@@ -141,6 +137,7 @@ export function AvatarUploader({
         imageUrl={cropImageUrl}
         open={isCropOpen}
         onOpenChange={handleCropOpenChange}
+        onExitComplete={clearCropSelection}
         onConfirm={(file) => {
           onUpload(file);
         }}

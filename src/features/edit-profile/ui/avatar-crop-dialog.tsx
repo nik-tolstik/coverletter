@@ -47,12 +47,14 @@ export function AvatarCropDialog({
   imageUrl,
   open,
   onOpenChange,
+  onExitComplete,
   onConfirm,
 }: {
   file: File | null;
   imageUrl: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onExitComplete: () => void;
   onConfirm: (file: File) => void;
 }) {
   const imageRef = useRef<HTMLImageElement>(null);
@@ -173,7 +175,14 @@ export function AvatarCropDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-5 sm:max-w-md">
+      <DialogContent
+        className="gap-5 sm:max-w-md"
+        onAnimationEnd={(event) => {
+          if (event.currentTarget === event.target && !open) {
+            onExitComplete();
+          }
+        }}
+      >
         <DialogHeader>
           <DialogTitle>Обрезать аватар</DialogTitle>
           <DialogDescription className="sr-only">
