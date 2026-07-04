@@ -2,6 +2,17 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
 import { verifyAuthUserCredentials } from "@/entities/auth/server";
+import {
+  getConfiguredAppOrigin,
+  getVercelDeploymentOrigin,
+} from "@/shared/lib/app-origin";
+
+const authOrigin = getConfiguredAppOrigin() ?? getVercelDeploymentOrigin();
+
+if (authOrigin) {
+  process.env.AUTH_URL = authOrigin;
+  process.env.NEXTAUTH_URL ??= authOrigin;
+}
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {

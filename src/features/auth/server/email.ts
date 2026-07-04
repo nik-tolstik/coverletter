@@ -3,6 +3,10 @@ import "server-only";
 import { headers } from "next/headers";
 
 import { getEmailFromAddress, getResend } from "@/shared/api/resend";
+import {
+  getConfiguredAppOrigin,
+  getVercelDeploymentOrigin,
+} from "@/shared/lib/app-origin";
 
 export async function sendVerificationEmail(email: string, token: string) {
   const url = await buildAuthUrl(`/auth/verify?token=${encodeURIComponent(token)}`);
@@ -71,16 +75,22 @@ async function sendAuthEmail({
 async function buildAuthUrl(path: string) {
   const requestHeaders = await headers();
   const origin =
-    process.env.AUTH_URL ??
-    process.env.NEXTAUTH_URL ??
+    getConfiguredAppOrigin() ??
     requestHeaders.get("origin") ??
-    buildOriginFromHeaders(requestHeaders);
+    buildOriginFromHeaders(requestHeaders) ??
+    getVercelDeploymentOrigin() ??
+    "http://localhost:3000";
 
   return new URL(path, origin).toString();
 }
 
 function buildOriginFromHeaders(requestHeaders: Headers) {
-  const host = requestHeaders.get("host") ?? "localhost:3000";
+  const host = requestHeaders.get("host");
+
+  if (!host) {
+    return undefined;
+  }
+
   const protocol = requestHeaders.get("x-forwarded-proto") ?? "http";
 
   return `${protocol}://${host}`;

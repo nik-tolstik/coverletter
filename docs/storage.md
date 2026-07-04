@@ -167,6 +167,8 @@ RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 ```
 
+`AUTH_URL`, when configured, must be an absolute URL with a protocol, for example `https://coverletter.example.com`. Vercel's `VERCEL_URL` system variable contains only the host.
+
 ## Security Rules
 
 - Keep Upstash credentials server-side only.

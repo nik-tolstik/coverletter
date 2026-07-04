@@ -1,5 +1,7 @@
 import "server-only";
 
+import { getConfiguredAppOrigin } from "@/shared/lib/app-origin";
+
 type ChatMessage = {
   role: "system" | "user";
   content: string;
@@ -110,8 +112,10 @@ function buildHeaders(apiKey: string) {
     "X-OpenRouter-Title": process.env.OPENROUTER_APP_TITLE ?? "Coverletter",
   };
 
-  if (process.env.OPENROUTER_SITE_URL) {
-    headers["HTTP-Referer"] = process.env.OPENROUTER_SITE_URL;
+  const siteUrl = getConfiguredAppOrigin(process.env.OPENROUTER_SITE_URL);
+
+  if (siteUrl) {
+    headers["HTTP-Referer"] = siteUrl;
   }
 
   return headers;
