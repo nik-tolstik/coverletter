@@ -47,13 +47,19 @@ const identityFields: Array<{
 export function IdentitySection({
   identity,
   isAvatarUploading,
+  avatarPreviewUrl,
+  avatarImageVersion,
   onUpdate,
   onAvatarUpload,
+  onAvatarPreviewReady,
 }: {
   identity: ProfileFormState["identity"];
   isAvatarUploading: boolean;
+  avatarPreviewUrl: string;
+  avatarImageVersion: number;
   onUpdate: (key: IdentityKey, value: string) => void;
   onAvatarUpload: (file: File) => void;
+  onAvatarPreviewReady: () => void;
 }) {
   return (
     <ProfileSectionCard
@@ -65,7 +71,10 @@ export function IdentitySection({
         <AvatarUploader
           avatarUrl={identity.avatarUrl}
           isUploading={isAvatarUploading}
+          previewUrl={avatarPreviewUrl}
+          avatarVersion={avatarImageVersion}
           onUpload={onAvatarUpload}
+          onPreviewReady={onAvatarPreviewReady}
         />
         {identityFields.map((field) => (
           <TextInputField

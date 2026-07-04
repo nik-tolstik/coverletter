@@ -160,6 +160,22 @@
   }
 }
 
+@keyframes avatar-glass-sheen {
+  0% {
+    transform: translate3d(0, 0, 0) rotate(12deg);
+    opacity: 0;
+  }
+
+  18% {
+    opacity: 0.9;
+  }
+
+  100% {
+    transform: translate3d(280%, 0, 0) rotate(12deg);
+    opacity: 0;
+  }
+}
+
 @keyframes letter-card-in {
   0% {
     opacity: 0;

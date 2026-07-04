@@ -31,6 +31,8 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   const [savedProfile, setSavedProfile] = useState(() => initialProfile);
   const [saveError, setSaveError] = useState<string>();
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const [avatarPreviewUrl, setAvatarPreviewUrl] = useState("");
+  const [avatarImageVersion, setAvatarImageVersion] = useState(0);
   const [isPending, startTransition] = useTransition();
   const latestProfileRef = useRef(profile);
   const profileSnapshot = serializeProfile(profile);
@@ -40,6 +42,16 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   useEffect(() => {
     latestProfileRef.current = profile;
   }, [profile]);
+
+  useEffect(() => {
+    if (!avatarPreviewUrl) {
+      return;
+    }
+
+    return () => {
+      URL.revokeObjectURL(avatarPreviewUrl);
+    };
+  }, [avatarPreviewUrl]);
 
   function saveProfile() {
     if (!isDirty || isPending) {
@@ -126,12 +138,15 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
       return;
     }
 
+    let shouldKeepPreview = false;
     const profileToSave = latestProfileRef.current;
     const uploadSnapshot = serializeProfile(profileToSave);
+    const nextAvatarPreviewUrl = URL.createObjectURL(file);
     const formData = new FormData();
 
     formData.append("file", file);
     formData.append("profile", JSON.stringify(profileToSave));
+    setAvatarPreviewUrl(nextAvatarPreviewUrl);
     setIsAvatarUploading(true);
 
     try {
@@ -166,6 +181,8 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
             },
       );
       setSaveError(undefined);
+      setAvatarImageVersion((currentVersion) => currentVersion + 1);
+      shouldKeepPreview = true;
       window.dispatchEvent(
         new CustomEvent("profile-avatar-updated", {
           detail: {
@@ -184,8 +201,16 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
       setSaveError(message);
       toast.error(message);
     } finally {
+      if (!shouldKeepPreview) {
+        setAvatarPreviewUrl("");
+      }
+
       setIsAvatarUploading(false);
     }
+  }
+
+  function clearAvatarPreview() {
+    setAvatarPreviewUrl("");
   }
 
   function updateIdentity(key: IdentityKey, value: string) {
@@ -337,11 +362,14 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
     isDirty,
     isPending,
     isAvatarUploading,
+    avatarPreviewUrl,
+    avatarImageVersion,
     saveError,
     saveProfile,
     cancelChanges,
     exportProfileMarkdown,
     uploadAvatar,
+    clearAvatarPreview,
     updateIdentity,
     updateLink,
     updateSkillCategory,
