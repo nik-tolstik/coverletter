@@ -1,7 +1,6 @@
 "use client";
 
 import type { CSSProperties } from "react";
-import { useEffect, useState } from "react";
 import {
   CircleCheckIcon,
   InfoIcon,
@@ -11,21 +10,15 @@ import {
 } from "lucide-react";
 import { Toaster as Sonner, type ToasterProps } from "sonner";
 
-const MOBILE_TOAST_QUERY = "(max-width: 767px)";
+const toastTextClassName = "font-normal! tracking-normal! normal-case! not-italic!";
 
-const Toaster = ({ position, ...props }: ToasterProps) => {
-  const [isMobile, setIsMobile] = useState(false);
-  const toastPosition = isMobile ? "top-center" : (position ?? "bottom-right");
+function mergeClassNames(...classNames: Array<string | undefined>) {
+  return classNames.filter(Boolean).join(" ");
+}
 
-  useEffect(() => {
-    const query = window.matchMedia(MOBILE_TOAST_QUERY);
-    const syncIsMobile = () => setIsMobile(query.matches);
-
-    syncIsMobile();
-    query.addEventListener("change", syncIsMobile);
-
-    return () => query.removeEventListener("change", syncIsMobile);
-  }, []);
+const Toaster = ({ position, toastOptions, ...props }: ToasterProps) => {
+  const toastPosition = position ?? "top-center";
+  const toastClassNames = toastOptions?.classNames;
 
   return (
     <Sonner
@@ -54,11 +47,31 @@ const Toaster = ({ position, ...props }: ToasterProps) => {
           "--normal-text": "var(--popover-foreground)",
           "--normal-border": "var(--border)",
           "--border-radius": "var(--radius)",
+          fontFamily: "var(--font-sans)",
         } as CSSProperties
       }
       toastOptions={{
+        ...toastOptions,
         classNames: {
-          toast: "cn-toast",
+          ...toastClassNames,
+          toast: mergeClassNames(
+            "cn-toast",
+            toastTextClassName,
+            toastClassNames?.toast,
+          ),
+          title: mergeClassNames(toastTextClassName, toastClassNames?.title),
+          description: mergeClassNames(
+            toastTextClassName,
+            toastClassNames?.description,
+          ),
+          actionButton: mergeClassNames(
+            toastTextClassName,
+            toastClassNames?.actionButton,
+          ),
+          cancelButton: mergeClassNames(
+            toastTextClassName,
+            toastClassNames?.cancelButton,
+          ),
         },
       }}
       {...props}

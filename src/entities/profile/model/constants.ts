@@ -41,6 +41,7 @@ export const EMPTY_PROFILE_MARKDOWN = `# Profile
 ### Company Name
 
 - Role:
+- Employment type:
 - Dates:
 - Domain:
 

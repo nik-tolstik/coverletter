@@ -57,7 +57,7 @@ The JSON value follows `ProfileJsonState`:
 
 ```json
 {
-  "schemaVersion": 5,
+  "schemaVersion": 7,
   "identity": {
     "name": "",
     "email": "niko.tolstik@gmail.com",
@@ -74,6 +74,24 @@ The JSON value follows `ProfileJsonState`:
     {
       "name": "Frontend",
       "skills": ["React", "TypeScript", "Next.js"]
+    }
+  ],
+  "experience": [
+    {
+      "companyName": "Acme Corp",
+      "role": "Frontend Engineer",
+      "employmentType": "Full-time",
+      "dates": "2022-2025",
+      "domain": "SaaS",
+      "description": "Built product interfaces for customer-facing workflows.",
+      "projects": [
+        {
+          "name": "Customer Portal",
+          "role": "Frontend Engineer",
+          "stack": "React, TypeScript, Next.js",
+          "workDescription": "Built core product screens and integrated APIs."
+        }
+      ]
     }
   ],
   "projects": [

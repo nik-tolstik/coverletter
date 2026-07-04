@@ -18,6 +18,7 @@ import { FieldGroup } from "@/shared/ui/field";
 
 import { CollapsibleContent } from "../collapsible-content";
 import { CompanyDatesField } from "../fields/company-dates-field";
+import { EmploymentTypeField } from "../fields/employment-type-field";
 import { TextAreaField } from "../fields/text-area-field";
 import { TextInputField } from "../fields/text-input-field";
 import { ExperienceProjectEditor } from "./experience-project-editor";
@@ -45,7 +46,9 @@ export function CompanyEditor({
   const [isOpen, setIsOpen] = useState(true);
   const contentId = `company-${index}-content`;
   const companyTitle = company.companyName || `Компания ${index + 1}`;
-  const companyMeta = [company.role, company.dates].filter(Boolean).join(" · ");
+  const companyMeta = [company.role, company.employmentType, company.dates]
+    .filter(Boolean)
+    .join(" · ");
   const { keys, insertKey, removeKey } = useAnimatedListKeys(
     company.projects.length,
     `company-${index}-project`,
@@ -135,6 +138,10 @@ export function CompanyEditor({
               label="Даты"
               value={company.dates}
               onChange={(value) => updateCompanyField("dates", value)}
+            />
+            <EmploymentTypeField
+              value={company.employmentType}
+              onChange={(value) => updateCompanyField("employmentType", value)}
             />
             <TextInputField
               id={`company-${index}-domain`}

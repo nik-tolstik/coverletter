@@ -20,7 +20,7 @@ export type ProfileFormState = {
 };
 
 export type ProfileJsonState = {
-  schemaVersion: 6;
+  schemaVersion: 7;
   identity: {
     name: string;
     email: string;
@@ -54,6 +54,7 @@ export type SkillCategoryForm = {
 export type ExperienceCompanyForm = {
   companyName: string;
   role: string;
+  employmentType: string;
   dates: string;
   domain: string;
   description: string;
@@ -132,6 +133,7 @@ export function createEmptyCompany(): ExperienceCompanyForm {
   return {
     companyName: "",
     role: "",
+    employmentType: "",
     dates: "",
     domain: "",
     description: "",
@@ -219,7 +221,7 @@ export function normalizeProfileJson(
   const links = readRecord(input.links);
 
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     identity: {
       name: readString(identity.name),
       email: readString(identity.email) || writeLineValue(fallbackEmail),
@@ -263,7 +265,7 @@ export function profileJsonToForm(profile: ProfileJsonState): ProfileFormState {
 
 export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
   return {
-    schemaVersion: 6,
+    schemaVersion: 7,
     identity: {
       name: writeLineValue(profile.identity.name),
       email: writeLineValue(profile.identity.email),
@@ -283,6 +285,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
     experience: profile.experience.map((company) => ({
       companyName: writeLineValue(company.companyName),
       role: writeLineValue(company.role),
+      employmentType: writeLineValue(company.employmentType),
       dates: writeLineValue(company.dates),
       domain: writeLineValue(company.domain),
       description: writeTextValue(company.description),
@@ -400,6 +403,14 @@ function readExperience(section: string) {
     return {
       companyName: title === "Company Name" ? "" : title,
       role: readLabel(labels, "Role", "Роль") ?? "",
+      employmentType:
+        readLabel(
+          labels,
+          "Employment type",
+          "Тип занятости",
+          "Employment",
+          "Занятость",
+        ) ?? "",
       dates: readLabel(labels, "Dates", "Даты") ?? "",
       domain: readLabel(labels, "Domain", "Домен") ?? "",
       description: readLabeledBlock(companyMeta, "Description", "Описание"),
@@ -566,6 +577,7 @@ function writeExperience(companies: ExperienceCompanyForm[]) {
       return `### ${writeHeadingValue(companyName)}
 
 - Role: ${writeLineValue(company.role)}
+- Employment type: ${writeLineValue(company.employmentType)}
 - Dates: ${writeLineValue(company.dates)}
 - Domain: ${writeLineValue(company.domain)}
 ${writeLabeledBlock("Description", company.description)}
@@ -783,6 +795,7 @@ function readExperienceJson(
       return {
         companyName: readString(company.companyName),
         role: readString(company.role),
+        employmentType: readString(company.employmentType),
         dates: readString(company.dates),
         domain: readString(company.domain),
         description: readText(company.description),

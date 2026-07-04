@@ -95,6 +95,7 @@ Company-level experience with project-level detail inside each company.
 ### Company Name
 
 - Role: Frontend Engineer
+- Employment type: Full-time
 - Dates: 2022-2025
 - Domain: fintech / ecommerce / SaaS / internal tools
 - Description:
@@ -169,6 +170,7 @@ These can be added after MVP without changing the core prompt contract:
 ### Company Name
 
 - Role:
+- Employment type:
 - Dates:
 - Domain:
 - Description:

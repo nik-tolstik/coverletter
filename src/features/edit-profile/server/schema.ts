@@ -26,6 +26,7 @@ const linkFields = [
 const companyFields = [
   "companyName",
   "role",
+  "employmentType",
   "dates",
   "domain",
   "description",
