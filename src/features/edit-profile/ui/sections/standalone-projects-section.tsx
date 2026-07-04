@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon, SquareKanbanIcon } from "lucide-react";
+import { HeartIcon, PlusIcon } from "lucide-react";
 
 import type { StandaloneProjectForm } from "@/entities/profile";
 import {
@@ -42,8 +42,8 @@ export function StandaloneProjectsSection({
 
   return (
     <ProfileSectionCard
-      title="Отдельные проекты"
-      icon={SquareKanbanIcon}
+      title="Личные проекты"
+      icon={HeartIcon}
       contentId="profile-projects-content"
       contentClassName="flex flex-col gap-4"
     >
