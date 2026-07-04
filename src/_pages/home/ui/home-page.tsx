@@ -1,17 +1,14 @@
 import { CoverLetterWorkspace } from "@/widgets/cover-letter-workspace";
 import type { CoverLetterHistoryState } from "@/entities/cover-letter-history";
 import type { CoverLetterSettingsState } from "@/entities/cover-letter-settings";
-import type { ProfileState } from "@/entities/profile";
-import { AppBottomNavigation, AppHeader } from "@/widgets/app-navigation";
+import { AppHeader } from "@/widgets/app-navigation";
 
 export function HomePage({
   initialHistory,
-  initialProfile,
   initialSettings,
   userEmail,
 }: {
   initialHistory: CoverLetterHistoryState;
-  initialProfile: ProfileState;
   initialSettings: CoverLetterSettingsState;
   userEmail: string;
 }) {
@@ -25,10 +22,6 @@ export function HomePage({
           userEmail={userEmail}
         />
       </div>
-      <AppBottomNavigation
-        initialProfile={initialProfile}
-        userEmail={userEmail}
-      />
     </main>
   );
 }

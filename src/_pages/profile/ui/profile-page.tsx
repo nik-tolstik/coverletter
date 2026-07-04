@@ -1,6 +1,6 @@
 import { ProfileEditorPage } from "@/features/edit-profile";
 import type { ProfileState } from "@/entities/profile";
-import { AppBottomNavigation, AppHeader } from "@/widgets/app-navigation";
+import { AppHeader } from "@/widgets/app-navigation";
 
 export function ProfilePage({
   initialProfile,
@@ -18,10 +18,6 @@ export function ProfilePage({
           userEmail={userEmail}
         />
       </div>
-      <AppBottomNavigation
-        initialProfile={initialProfile}
-        userEmail={userEmail}
-      />
     </main>
   );
 }
