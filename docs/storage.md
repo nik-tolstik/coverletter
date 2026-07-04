@@ -2,7 +2,7 @@
 
 ## Decision
 
-Use Upstash Redis from the Vercel Marketplace as the MVP database for auth users, the structured JSON profile, saved cover letter settings, and generated history.
+Use Upstash Redis from the Vercel Marketplace as the MVP database for auth users, the structured JSON profile, saved cover letter settings, and generated history. Use Vercel Blob Storage for uploaded profile avatars, while storing the resulting Blob URL in the Redis-backed profile JSON.
 
 Why this is the simplest fit:
 
@@ -59,6 +59,7 @@ The JSON value follows `ProfileJsonState`:
 {
   "schemaVersion": 7,
   "identity": {
+    "avatarUrl": "",
     "name": "",
     "email": "niko.tolstik@gmail.com",
     "currentPosition": "",
@@ -185,11 +186,21 @@ RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 ```
 
+Avatar upload variables:
+
+```txt
+BLOB_STORE_ID=
+BLOB_READ_WRITE_TOKEN=
+```
+
+Avatar files are uploaded with private Blob access and delivered through the authenticated `/api/profile/avatar` route. This keeps the read-write token server-side and supports private Blob stores.
+
 `AUTH_URL`, when configured, must be an absolute URL with a protocol, for example `https://coverletter.example.com`. Vercel's `VERCEL_URL` system variable contains only the host.
 
 ## Security Rules
 
 - Keep Upstash credentials server-side only.
+- Keep Blob Storage read/write tokens server-side only.
 - Do not expose Redis URLs or tokens to Client Components.
 - Do not log the full profile JSON, generated Markdown, or generation prompts.
 - Keep profile, settings, history, and auth user reads/writes behind server routes.

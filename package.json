@@ -2,6 +2,7 @@
   "name": "coverletter",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.9.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,6 +13,7 @@
   "dependencies": {
     "@lobehub/icons": "^5.10.1",
     "@upstash/redis": "^1.38.0",
+    "@vercel/blob": "^2.5.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "country-flag-icons": "^1.6.20",

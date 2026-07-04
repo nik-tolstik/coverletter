@@ -29,10 +29,10 @@ export async function DELETE() {
     const history = await clearCoverLetterHistory(user.email);
 
     return Response.json(history);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "История писем не очищена.";
-
-    return Response.json({ error: message }, { status: 502 });
+  } catch {
+    return Response.json(
+      { error: "Что-то пошло не так." },
+      { status: 502 },
+    );
   }
 }

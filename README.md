@@ -50,6 +50,13 @@ KV_REST_API_TOKEN=
 
 Use the write token, not the read-only token, because `/profile` saves the profile.
 
+Avatar uploads use Vercel Blob Storage:
+
+```txt
+BLOB_STORE_ID=
+BLOB_READ_WRITE_TOKEN=
+```
+
 Authentication and transactional email:
 
 ```txt

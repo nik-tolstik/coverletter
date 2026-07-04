@@ -1,5 +1,6 @@
 export type ProfileFormState = {
   identity: {
+    avatarUrl: string;
     name: string;
     email: string;
     currentPosition: string;
@@ -22,6 +23,7 @@ export type ProfileFormState = {
 export type ProfileJsonState = {
   schemaVersion: 7;
   identity: {
+    avatarUrl: string;
     name: string;
     email: string;
     currentPosition: string;
@@ -98,6 +100,7 @@ const migratedSkillCategoryName = "General";
 export function createEmptyProfileForm(): ProfileFormState {
   return {
     identity: {
+      avatarUrl: "",
       name: "",
       email: "",
       currentPosition: "",
@@ -170,6 +173,7 @@ export function parseMarkdownToProfileForm(
 
   return {
     identity: {
+      avatarUrl: fallback.identity.avatarUrl,
       name: readLabel(identity, "Name", "Имя") ?? fallback.identity.name,
       email:
         readLabel(identity, "Email", "Почта") ||
@@ -223,6 +227,7 @@ export function normalizeProfileJson(
   return {
     schemaVersion: 7,
     identity: {
+      avatarUrl: readString(identity.avatarUrl),
       name: readString(identity.name),
       email: readString(identity.email) || writeLineValue(fallbackEmail),
       currentPosition: readString(identity.currentPosition),
@@ -246,6 +251,7 @@ export function normalizeProfileJson(
 export function profileJsonToForm(profile: ProfileJsonState): ProfileFormState {
   return {
     identity: {
+      avatarUrl: profile.identity.avatarUrl,
       name: profile.identity.name,
       email: profile.identity.email,
       currentPosition: profile.identity.currentPosition,
@@ -267,6 +273,7 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
   return {
     schemaVersion: 7,
     identity: {
+      avatarUrl: writeLineValue(profile.identity.avatarUrl),
       name: writeLineValue(profile.identity.name),
       email: writeLineValue(profile.identity.email),
       currentPosition: writeLineValue(profile.identity.currentPosition),

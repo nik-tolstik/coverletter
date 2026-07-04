@@ -17,6 +17,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 - Keep all code comments in English.
 - Do not use emoji in code, UI copy, documentation, comments, commits, or agent responses.
 - Do not add descriptions for fields, blocks, or UI sections unless the user explicitly asks for them.
+- Do not expose internal system details in user-facing errors, UI copy, API responses, toasts, or form messages. Details such as environment variable names, storage providers, Redis, Blob Storage, tokens, stack traces, provider internals, or infrastructure configuration must be replaced with a neutral message such as `Что-то пошло не так.`; keep the detailed cause only in server-side diagnostics when needed.
+- Do not use borders or rings as decorative styling for new or changed UI elements unless the user explicitly asks for them. Prefer spacing, background contrast, opacity, shadow, and motion for hierarchy and interaction states.
 - Add tasteful, lightweight animations for new or changed interactive and dynamic UI components whenever it improves clarity or perceived quality. Prefer existing project patterns such as Motion-based list/item transitions or simple CSS transitions, and keep animations subtle.
 - Do not add `prefers-reduced-motion` or `motion-reduce` support unless the user explicitly asks for it.
 - Verify work in a browser only when the user explicitly asks to check the result in a browser.

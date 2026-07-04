@@ -6,13 +6,14 @@ import type { ProfileFormState } from "@/entities/profile";
 import type { IdentityKey } from "@/features/edit-profile/model/use-profile-editor";
 import { FieldGroup } from "@/shared/ui/field";
 
+import { AvatarUploader } from "../avatar-uploader";
 import { LanguagesField } from "../fields/languages-field";
 import { TextInputField } from "../fields/text-input-field";
 import { WorkFormatField } from "../fields/work-format-field";
 import { ProfileSectionCard } from "../profile-section-card";
 
 const identityFields: Array<{
-  key: Exclude<IdentityKey, "workFormat" | "languages">;
+  key: Exclude<IdentityKey, "avatarUrl" | "workFormat" | "languages">;
   label: string;
   placeholder: string;
 }> = [
@@ -45,10 +46,14 @@ const identityFields: Array<{
 
 export function IdentitySection({
   identity,
+  isAvatarUploading,
   onUpdate,
+  onAvatarUpload,
 }: {
   identity: ProfileFormState["identity"];
+  isAvatarUploading: boolean;
   onUpdate: (key: IdentityKey, value: string) => void;
+  onAvatarUpload: (file: File) => void;
 }) {
   return (
     <ProfileSectionCard
@@ -57,6 +62,11 @@ export function IdentitySection({
       contentId="profile-identity-content"
     >
       <FieldGroup className="grid gap-5">
+        <AvatarUploader
+          avatarUrl={identity.avatarUrl}
+          isUploading={isAvatarUploading}
+          onUpload={onAvatarUpload}
+        />
         {identityFields.map((field) => (
           <TextInputField
             key={field.key}

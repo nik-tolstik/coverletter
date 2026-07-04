@@ -18,6 +18,7 @@ Coverletter is a Next.js application that generates cover letters from a detaile
 | Auth | Auth.js credentials provider with email confirmation |
 | Email | Resend |
 | Database | Upstash Redis through Vercel Marketplace |
+| File storage | Vercel Blob Storage for uploaded avatars |
 | Package manager | pnpm |
 | File organization | Simple feature folders |
 | Import alias | `@/*` -> `./src/*` |
@@ -25,6 +26,8 @@ Coverletter is a Next.js application that generates cover letters from a detaile
 ## Product Model
 
 The user profile is stored as structured JSON so form fields round-trip without Markdown parsing issues. Markdown is generated from that JSON only for the AI prompt.
+
+Uploaded avatars are stored in Vercel Blob Storage. The profile JSON stores only the Blob URL under `identity.avatarUrl`, and the UI reads the image through an authenticated avatar route.
 
 The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, and projects. Cover letter rules and message format are per-letter generation settings, not profile data.
 
@@ -139,6 +142,8 @@ Recommended environment variables:
 ```txt
 KV_REST_API_URL=
 KV_REST_API_TOKEN=
+BLOB_STORE_ID=
+BLOB_READ_WRITE_TOKEN=
 OPENROUTER_API_KEY=
 OPENROUTER_MODEL=openai/gpt-5.4-mini
 OPENROUTER_SITE_URL=

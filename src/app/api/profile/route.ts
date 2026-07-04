@@ -47,10 +47,10 @@ export async function PUT(request: Request) {
     const profile = await saveProfile(user.email, payload.data.profile);
 
     return Response.json(profile);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Профиль не сохранён.";
-
-    return Response.json({ error: message }, { status: 502 });
+  } catch {
+    return Response.json(
+      { error: "Что-то пошло не так." },
+      { status: 502 },
+    );
   }
 }

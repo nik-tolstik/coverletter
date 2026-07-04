@@ -47,11 +47,11 @@ export async function PUT(request: Request) {
     );
 
     return Response.json(settings);
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Настройки письма не сохранены.";
-
-    return Response.json({ error: message }, { status: 502 });
+  } catch {
+    return Response.json(
+      { error: "Что-то пошло не так." },
+      { status: 502 },
+    );
   }
 }
 

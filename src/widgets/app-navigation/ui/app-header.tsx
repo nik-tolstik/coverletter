@@ -2,7 +2,13 @@ import Image from "next/image";
 
 import { UserMenu } from "./user-menu";
 
-export function AppHeader({ userEmail }: { userEmail: string }) {
+export function AppHeader({
+  userEmail,
+  userAvatarUrl,
+}: {
+  userEmail: string;
+  userAvatarUrl?: string;
+}) {
   return (
     <header className="relative flex min-h-10 items-center justify-center px-12">
       <div className="flex min-w-0 items-center justify-center gap-3">
@@ -20,7 +26,7 @@ export function AppHeader({ userEmail }: { userEmail: string }) {
       </div>
 
       <div className="absolute top-1/2 right-0 -translate-y-1/2">
-        <UserMenu email={userEmail} />
+        <UserMenu avatarUrl={userAvatarUrl} email={userEmail} />
       </div>
     </header>
   );

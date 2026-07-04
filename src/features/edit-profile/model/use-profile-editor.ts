@@ -30,6 +30,7 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
   const [profile, setProfile] = useState(() => initialProfile);
   const [savedProfile, setSavedProfile] = useState(() => initialProfile);
   const [saveError, setSaveError] = useState<string>();
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [isPending, startTransition] = useTransition();
   const latestProfileRef = useRef(profile);
   const profileSnapshot = serializeProfile(profile);
@@ -86,8 +87,7 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
             : "Профиль сохранён.",
         );
       } catch {
-        const message =
-          "Профиль не сохранён. Проверьте подключение к хранилищу.";
+        const message = "Что-то пошло не так.";
 
         setSaveError(message);
         toast.error(message);
@@ -118,6 +118,73 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
       toast.success("Markdown профиля экспортирован.");
     } catch {
       toast.error("Не удалось экспортировать профиль.");
+    }
+  }
+
+  async function uploadAvatar(file: File) {
+    if (isAvatarUploading) {
+      return;
+    }
+
+    const profileToSave = latestProfileRef.current;
+    const uploadSnapshot = serializeProfile(profileToSave);
+    const formData = new FormData();
+
+    formData.append("file", file);
+    formData.append("profile", JSON.stringify(profileToSave));
+    setIsAvatarUploading(true);
+
+    try {
+      const response = await fetch("/api/profile/avatar", {
+        method: "PUT",
+        body: formData,
+      });
+      const data = await readProfileSaveResponse(response);
+
+      if (!response.ok) {
+        const message = data.error ?? "Аватар не загружен.";
+
+        setSaveError(message);
+        toast.error(message);
+        return;
+      }
+
+      const nextSavedProfile = data.profile ?? profileToSave;
+      const hasNewUnsavedChanges =
+        serializeProfile(latestProfileRef.current) !== uploadSnapshot;
+
+      setSavedProfile(nextSavedProfile);
+      setProfile((currentProfile) =>
+        serializeProfile(currentProfile) === uploadSnapshot
+          ? nextSavedProfile
+          : {
+              ...currentProfile,
+              identity: {
+                ...currentProfile.identity,
+                avatarUrl: nextSavedProfile.identity.avatarUrl,
+              },
+            },
+      );
+      setSaveError(undefined);
+      window.dispatchEvent(
+        new CustomEvent("profile-avatar-updated", {
+          detail: {
+            avatarUrl: nextSavedProfile.identity.avatarUrl,
+          },
+        }),
+      );
+      toast.success(
+        hasNewUnsavedChanges
+          ? "Аватар загружен. Есть новые несохранённые изменения."
+          : "Аватар загружен.",
+      );
+    } catch {
+      const message = "Что-то пошло не так.";
+
+      setSaveError(message);
+      toast.error(message);
+    } finally {
+      setIsAvatarUploading(false);
     }
   }
 
@@ -269,10 +336,12 @@ export function useProfileEditor(initialProfile: ProfileFormState) {
     profile,
     isDirty,
     isPending,
+    isAvatarUploading,
     saveError,
     saveProfile,
     cancelChanges,
     exportProfileMarkdown,
+    uploadAvatar,
     updateIdentity,
     updateLink,
     updateSkillCategory,

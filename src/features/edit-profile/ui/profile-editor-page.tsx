@@ -54,7 +54,9 @@ export function ProfileEditorPage({
 
         <IdentitySection
           identity={editor.profile.identity}
+          isAvatarUploading={editor.isAvatarUploading}
           onUpdate={editor.updateIdentity}
+          onAvatarUpload={editor.uploadAvatar}
         />
 
         <LinksSection

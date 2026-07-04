@@ -7,6 +7,7 @@ type ParseResult<T> =
 const invalidProfileError = "Профиль содержит некорректные данные.";
 
 const identityFields = [
+  "avatarUrl",
   "name",
   "email",
   "currentPosition",
