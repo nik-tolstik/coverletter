@@ -3,7 +3,6 @@ import "./globals.css";
 import { Manrope, Onest } from "next/font/google";
 import { cn } from "@/shared/lib/utils";
 import { AppProviders } from "@/_app/providers";
-import { AppBottomNavigation } from "@/widgets/app-navigation";
 
 const manropeHeading = Manrope({
   subsets: ["latin"],
@@ -31,10 +30,7 @@ export default function RootLayout({
       className={cn("font-sans", onest.variable, manropeHeading.variable)}
     >
       <body>
-        <AppProviders>
-          {children}
-          <AppBottomNavigation />
-        </AppProviders>
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

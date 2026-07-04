@@ -1,20 +1,22 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FilePenLineIcon,
   FileTextIcon,
-  UserRoundIcon,
   type LucideIcon,
 } from "lucide-react";
 
+import { useProfileQuery, type ProfileState } from "@/entities/profile";
 import { cn } from "@/shared/lib/utils";
 
 type NavigationItem = {
   href: string;
   label: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
+  variant?: "profile";
 };
 
 const navigationItems: NavigationItem[] = [
@@ -24,19 +26,35 @@ const navigationItems: NavigationItem[] = [
     icon: FilePenLineIcon,
   },
   {
-    href: "/profile",
-    label: "Профиль",
-    icon: UserRoundIcon,
-  },
-  {
     href: "/resume",
     label: "Резюме",
     icon: FileTextIcon,
   },
+  {
+    href: "/profile",
+    label: "Профиль",
+    variant: "profile",
+  },
 ];
 
-export function AppBottomNavigation() {
+export function AppBottomNavigation({
+  initialProfile,
+  userEmail,
+}: {
+  initialProfile: ProfileState;
+  userEmail: string;
+}) {
   const pathname = usePathname();
+  const profileQuery = useProfileQuery({
+    initialProfile,
+    userEmail,
+  });
+  const currentProfile = profileQuery.data ?? initialProfile;
+  const currentAvatarUrl = currentProfile.profile.identity.avatarUrl;
+  const avatarVersion = currentProfile.updatedAt || currentAvatarUrl;
+  const avatarSrc = currentAvatarUrl
+    ? `/api/profile/avatar?v=${encodeURIComponent(avatarVersion)}`
+    : "";
 
   if (pathname.startsWith("/auth")) {
     return null;
@@ -72,6 +90,7 @@ export function AppBottomNavigation() {
           {navigationItems.map((item, index) => {
             const Icon = item.icon;
             const isActive = safeActiveIndex === index;
+            const isProfileItem = item.variant === "profile";
 
             return (
               <Link
@@ -85,12 +104,37 @@ export function AppBottomNavigation() {
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
-                <Icon
-                  className={cn(
-                    "size-4 transition-transform duration-300 motion-reduce:transition-none",
-                    isActive && "-translate-y-0.5",
-                  )}
-                />
+                {isProfileItem ? (
+                  <span
+                    className={cn(
+                      "size-5 overflow-hidden rounded-full bg-muted transition-transform duration-300",
+                      isActive && "-translate-y-0.5",
+                    )}
+                  >
+                    {currentAvatarUrl && (
+                      <Image
+                        key={avatarVersion}
+                        src={avatarSrc}
+                        alt=""
+                        width={20}
+                        height={20}
+                        unoptimized
+                        sizes="20px"
+                        className="size-full object-cover"
+                        draggable={false}
+                      />
+                    )}
+                  </span>
+                ) : (
+                  Icon && (
+                    <Icon
+                      className={cn(
+                        "size-4 transition-transform duration-300 motion-reduce:transition-none",
+                        isActive && "-translate-y-0.5",
+                      )}
+                    />
+                  )
+                )}
                 <span className="truncate">{item.label}</span>
               </Link>
             );

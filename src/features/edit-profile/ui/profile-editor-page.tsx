@@ -1,7 +1,8 @@
 "use client";
 
-import { ChevronDownIcon, DownloadIcon } from "lucide-react";
+import { ChevronDownIcon, DownloadIcon, LogOutIcon } from "lucide-react";
 import { AnimatePresence } from "motion/react";
+import { signOut } from "next-auth/react";
 
 import type { ProfileState } from "@/entities/profile";
 import { useProfileEditor } from "@/features/edit-profile/model/use-profile-editor";
@@ -51,6 +52,16 @@ export function ProfileEditorPage({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => {
+                void signOut({ redirectTo: "/auth" });
+              }}
+            >
+              <LogOutIcon data-icon="inline-start" />
+              Выйти
+            </Button>
           </div>
         </header>
 
