@@ -1,5 +1,6 @@
 "use client";
 
+import { LinkIcon } from "lucide-react";
 import type { IconType } from "react-icons";
 import { FaGithub, FaGlobe, FaLinkedin, FaTelegramPlane } from "react-icons/fa";
 
@@ -55,7 +56,11 @@ export function LinksSection({
   onUpdate: (key: LinkKey, value: string) => void;
 }) {
   return (
-    <ProfileSectionCard title="Ссылки" contentId="profile-links-content">
+    <ProfileSectionCard
+      title="Ссылки"
+      icon={LinkIcon}
+      contentId="profile-links-content"
+    >
       <FieldGroup className="grid gap-5">
         {linkFields.map((field) => (
           <LinkInputField

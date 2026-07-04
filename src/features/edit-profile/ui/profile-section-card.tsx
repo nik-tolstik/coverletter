@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, type LucideIcon } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 import { cn } from "@/shared/lib/utils";
@@ -16,6 +16,7 @@ import { CollapsibleContent } from "./collapsible-content";
 
 export function ProfileSectionCard({
   title,
+  icon: Icon,
   contentId,
   action,
   contentClassName,
@@ -23,6 +24,7 @@ export function ProfileSectionCard({
   children,
 }: {
   title: string;
+  icon?: LucideIcon;
   contentId: string;
   action?: ReactNode;
   contentClassName?: string;
@@ -47,6 +49,12 @@ export function ProfileSectionCard({
               !isOpen && "-rotate-90",
             )}
           />
+          {Icon && (
+            <Icon
+              className="size-4 shrink-0 text-muted-foreground transition-colors group-hover:text-foreground"
+              aria-hidden="true"
+            />
+          )}
           <span className="flex min-w-0 flex-col gap-1">
             <CardTitle>{title}</CardTitle>
           </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { BriefcaseBusinessIcon, PlusIcon } from "lucide-react";
 
 import type {
   ExperienceCompanyForm,
@@ -56,6 +56,7 @@ export function ExperienceSection({
   return (
     <ProfileSectionCard
       title="Опыт"
+      icon={BriefcaseBusinessIcon}
       contentId="profile-experience-content"
       contentClassName="flex flex-col gap-4"
     >
@@ -82,11 +83,7 @@ export function ExperienceSection({
           </AnimatedListItem>
         ))}
         {!experience.length && (
-          <AnimatedListItem
-            key="empty-experience"
-            itemKey="empty-experience"
-            spacing="1rem"
-          >
+          <AnimatedListItem key="empty-experience" itemKey="empty-experience">
             <EmptySectionState />
           </AnimatedListItem>
         )}

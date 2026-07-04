@@ -188,11 +188,7 @@ function HistoryList({
         </AnimatedListItem>
       ))}
       {!history.length && (
-        <AnimatedListItem
-          key="empty-history"
-          itemKey="empty-history"
-          spacing="1rem"
-        >
+        <AnimatedListItem key="empty-history" itemKey="empty-history">
           <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
             <HistoryIcon className="size-5" />
             История появится после первой успешной генерации.

@@ -1,5 +1,7 @@
 "use client";
 
+import { UserRoundIcon } from "lucide-react";
+
 import type { ProfileFormState } from "@/entities/profile";
 import type { IdentityKey } from "@/features/edit-profile/model/use-profile-editor";
 import { FieldGroup } from "@/shared/ui/field";
@@ -51,6 +53,7 @@ export function IdentitySection({
   return (
     <ProfileSectionCard
       title="Личные данные"
+      icon={UserRoundIcon}
       contentId="profile-identity-content"
     >
       <FieldGroup className="grid gap-5">

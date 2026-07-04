@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, WrenchIcon } from "lucide-react";
 
 import type { SkillCategoryForm } from "@/entities/profile";
 import {
@@ -43,6 +43,7 @@ export function SkillsSection({
   return (
     <ProfileSectionCard
       title="Навыки"
+      icon={WrenchIcon}
       contentId="profile-skills-content"
       contentClassName="flex flex-col gap-5"
     >
@@ -62,11 +63,7 @@ export function SkillsSection({
           </AnimatedListItem>
         ))}
         {!skills.length && (
-          <AnimatedListItem
-            key="empty-skills"
-            itemKey="empty-skills"
-            spacing="1rem"
-          >
+          <AnimatedListItem key="empty-skills" itemKey="empty-skills">
             <EmptySectionState />
           </AnimatedListItem>
         )}

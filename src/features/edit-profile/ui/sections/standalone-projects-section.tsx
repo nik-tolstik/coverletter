@@ -1,6 +1,6 @@
 "use client";
 
-import { PlusIcon } from "lucide-react";
+import { PlusIcon, SquareKanbanIcon } from "lucide-react";
 
 import type { StandaloneProjectForm } from "@/entities/profile";
 import {
@@ -43,6 +43,7 @@ export function StandaloneProjectsSection({
   return (
     <ProfileSectionCard
       title="Отдельные проекты"
+      icon={SquareKanbanIcon}
       contentId="profile-projects-content"
       contentClassName="flex flex-col gap-4"
     >
@@ -62,11 +63,7 @@ export function StandaloneProjectsSection({
           </AnimatedListItem>
         ))}
         {!projects.length && (
-          <AnimatedListItem
-            key="empty-projects"
-            itemKey="empty-projects"
-            spacing="1rem"
-          >
+          <AnimatedListItem key="empty-projects" itemKey="empty-projects">
             <EmptySectionState />
           </AnimatedListItem>
         )}
