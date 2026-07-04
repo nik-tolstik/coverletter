@@ -44,14 +44,14 @@ export function StandaloneProjectsSection({
     <ProfileSectionCard
       title="Отдельные проекты"
       contentId="profile-projects-content"
-      contentClassName="flex flex-col gap-8"
+      contentClassName="flex flex-col gap-4"
     >
-      <AnimatedList className="-mb-8 flex flex-col">
-        {projects.map((project, projectIndex) => (
+      <AnimatedList className="flex flex-col">
+        {projects.map((project, projectIndex, array) => (
           <AnimatedListItem
             key={keys[projectIndex]}
             itemKey={keys[projectIndex]}
-            spacing="2rem"
+            spacing={projectIndex < array.length - 1 ? "1rem" : 0}
           >
             <StandaloneProjectEditor
               project={project}
@@ -65,7 +65,7 @@ export function StandaloneProjectsSection({
           <AnimatedListItem
             key="empty-projects"
             itemKey="empty-projects"
-            spacing="2rem"
+            spacing="1rem"
           >
             <EmptySectionState />
           </AnimatedListItem>

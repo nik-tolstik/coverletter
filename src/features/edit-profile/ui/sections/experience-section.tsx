@@ -57,14 +57,14 @@ export function ExperienceSection({
     <ProfileSectionCard
       title="Опыт"
       contentId="profile-experience-content"
-      contentClassName="flex flex-col gap-8"
+      contentClassName="flex flex-col gap-4"
     >
-      <AnimatedList className="-mb-8 flex flex-col">
-        {experience.map((company, companyIndex) => (
+      <AnimatedList className="flex flex-col">
+        {experience.map((company, companyIndex, array) => (
           <AnimatedListItem
             key={keys[companyIndex]}
             itemKey={keys[companyIndex]}
-            spacing="2rem"
+            spacing={companyIndex < array.length - 1 ? "1rem" : 0}
           >
             <CompanyEditor
               company={company}
@@ -85,7 +85,7 @@ export function ExperienceSection({
           <AnimatedListItem
             key="empty-experience"
             itemKey="empty-experience"
-            spacing="2rem"
+            spacing="1rem"
           >
             <EmptySectionState />
           </AnimatedListItem>

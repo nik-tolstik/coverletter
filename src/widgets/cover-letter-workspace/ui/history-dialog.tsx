@@ -2,12 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useState } from "react";
-import {
-  CopyIcon,
-  HistoryIcon,
-  SparklesIcon,
-  Trash2Icon,
-} from "lucide-react";
+import { CopyIcon, HistoryIcon, SparklesIcon, Trash2Icon } from "lucide-react";
 import { toast } from "sonner";
 
 import type { CoverLetterHistoryItem } from "@/entities/cover-letter-history";
@@ -113,7 +108,10 @@ export function HistoryDialog({
         </HistoryDialogContent>
       </Dialog>
 
-      <Dialog open={selectedItem !== null} onOpenChange={handleDetailsOpenChange}>
+      <Dialog
+        open={selectedItem !== null}
+        onOpenChange={handleDetailsOpenChange}
+      >
         <HistoryDialogContent>
           <DialogHeader className="border-b border-border px-5 py-4 pr-12 sm:px-6 sm:pr-14">
             <DialogTitle>Письмо из истории</DialogTitle>
@@ -142,7 +140,7 @@ export function HistoryDialog({
 
 function HistoryDialogContent({ children }: { children: ReactNode }) {
   return (
-    <DialogContent className="top-0 bottom-0 grid h-auto !max-h-none w-full max-w-190 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-none p-0 sm:bottom-0">
+    <DialogContent className="top-0 bottom-0 grid h-auto max-h-none! w-full max-w-190 grid-rows-[auto_minmax(0,1fr)_auto] gap-0 overflow-hidden rounded-none p-0 sm:bottom-0">
       {children}
     </DialogContent>
   );
@@ -156,9 +154,13 @@ function HistoryList({
   onSelect: HistoryItemAction;
 }) {
   return (
-    <AnimatedList className="-mb-2 flex flex-col">
-      {history.map((item) => (
-        <AnimatedListItem key={item.id} itemKey={item.id} spacing="0.5rem">
+    <AnimatedList className="flex flex-col">
+      {history.map((item, index, array) => (
+        <AnimatedListItem
+          key={item.id}
+          itemKey={item.id}
+          spacing={index < array.length - 1 ? "1rem" : 0}
+        >
           <button
             type="button"
             onClick={() => onSelect(item)}
@@ -189,7 +191,7 @@ function HistoryList({
         <AnimatedListItem
           key="empty-history"
           itemKey="empty-history"
-          spacing="0.5rem"
+          spacing="1rem"
         >
           <div className="flex min-h-40 flex-col items-center justify-center gap-2 rounded-xl bg-input/10 p-6 text-center text-sm text-muted-foreground">
             <HistoryIcon className="size-5" />
@@ -223,7 +225,9 @@ function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
           <FieldTitle>Модель</FieldTitle>
           <HistoryReadonlyValue>
             <ModelLogo model={item.model} />
-            <span className="min-w-0 truncate">{getModelLabel(item.model)}</span>
+            <span className="min-w-0 truncate">
+              {getModelLabel(item.model)}
+            </span>
           </HistoryReadonlyValue>
         </Field>
       </div>
@@ -244,7 +248,10 @@ function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
         contentId="history-additional-wishes-content"
         defaultOpen={false}
       >
-        <HistoryReadonlyText value={item.additionalWishes} className="min-h-24" />
+        <HistoryReadonlyText
+          value={item.additionalWishes}
+          className="min-h-24"
+        />
       </HistoryCollapsibleCard>
 
       <HistoryCollapsibleCard
@@ -260,10 +267,7 @@ function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
         contentId="history-cover-letter-content"
         action={<HistoryCopyButton value={item.coverLetter} />}
       >
-        <HistoryReadonlyText
-          value={item.coverLetter}
-          className="min-h-72"
-        />
+        <HistoryReadonlyText value={item.coverLetter} className="min-h-72" />
       </HistoryCollapsibleCard>
     </div>
   );
@@ -349,7 +353,7 @@ function HistoryReadonlyText({
   return (
     <div
       className={cn(
-        "relative w-full whitespace-pre-wrap break-words rounded-xl bg-input/30 px-3 py-3 text-sm leading-6",
+        "relative w-full whitespace-pre-wrap wrap-break-word rounded-xl bg-input/30 px-3 py-3 text-sm leading-6",
         !content && "text-muted-foreground",
         action && "pr-14",
         className,

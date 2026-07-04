@@ -85,13 +85,13 @@ export function LanguagesField({ value, onChange }: LanguagesFieldProps) {
           Добавить
         </Button>
       </div>
-      <AnimatedList className="-mb-3 flex flex-col">
-        {languages.map((item, index) => (
+      <AnimatedList className="flex flex-col">
+        {languages.map((item, index, array) => (
           <AnimatedListItem
             key={keys[index]}
             itemKey={keys[index]}
             variant="accordion"
-            spacing="0.75rem"
+            spacing={index < array.length - 1 ? "0.75rem" : 0}
             className="grid items-center gap-3 grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]"
           >
             <Field>

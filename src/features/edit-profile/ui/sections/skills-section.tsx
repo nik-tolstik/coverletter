@@ -46,19 +46,17 @@ export function SkillsSection({
       contentId="profile-skills-content"
       contentClassName="flex flex-col gap-5"
     >
-      <AnimatedList className="-mb-5 flex flex-col">
-        {skills.map((category, categoryIndex) => (
+      <AnimatedList className="flex flex-col">
+        {skills.map((category, categoryIndex, array) => (
           <AnimatedListItem
             key={keys[categoryIndex]}
             itemKey={keys[categoryIndex]}
-            spacing="1.25rem"
+            spacing={categoryIndex < array.length - 1 ? "1rem" : 0}
           >
             <SkillCategoryEditor
               category={category}
               index={categoryIndex}
-              onChange={(nextCategory) =>
-                onChange(categoryIndex, nextCategory)
-              }
+              onChange={(nextCategory) => onChange(categoryIndex, nextCategory)}
               onRemove={() => handleRemove(categoryIndex)}
             />
           </AnimatedListItem>
@@ -67,7 +65,7 @@ export function SkillsSection({
           <AnimatedListItem
             key="empty-skills"
             itemKey="empty-skills"
-            spacing="1.25rem"
+            spacing="1rem"
           >
             <EmptySectionState />
           </AnimatedListItem>

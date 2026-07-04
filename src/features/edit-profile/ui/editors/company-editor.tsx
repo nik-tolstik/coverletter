@@ -152,12 +152,12 @@ export function CompanyEditor({
             />
           </FieldGroup>
 
-          <AnimatedList className="-mb-5 flex flex-col">
-            {company.projects.map((project, projectIndex) => (
+          <AnimatedList className="flex flex-col">
+            {company.projects.map((project, projectIndex, array) => (
               <AnimatedListItem
                 key={keys[projectIndex]}
                 itemKey={keys[projectIndex]}
-                spacing="1.25rem"
+                spacing={projectIndex < array.length - 1 ? "1rem" : 0}
               >
                 <ExperienceProjectEditor
                   project={project}
