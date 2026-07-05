@@ -68,7 +68,7 @@ The JSON value follows `ProfileJsonState`:
     "workFormats": ["Remote", "Hybrid"],
     "languages": [
       { "language": "Russian", "level": "Native" },
-      { "language": "English", "level": "B2" }
+      { "language": "English", "level": "Upper-Intermediate" }
     ]
   },
   "skills": [

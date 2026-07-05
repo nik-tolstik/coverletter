@@ -4,7 +4,7 @@ The Markdown profile is the main factual source for cover letter generation. It 
 
 ## Principles
 
-- Write facts in first person or neutral resume style, but keep them concrete.
+- Write facts in first person or neutral professional style, but keep them concrete.
 - Prefer project role, stack, and a concrete free-form contribution description over generic responsibility lists.
 - Group skills by practical category and let experience, projects, and outcomes show depth.
 - Keep all claims verifiable from the profile; if something is not in the profile, the generated letter must not claim it.
@@ -34,7 +34,7 @@ Stable facts about the candidate.
 - Experience: X years as a Frontend Engineer
 - Location: City, Country
 - Work format: Remote, Hybrid
-- Languages: Russian - Native, English - B2
+- Languages: Russian - Native, English - Upper-Intermediate
 ```
 
 ### Links

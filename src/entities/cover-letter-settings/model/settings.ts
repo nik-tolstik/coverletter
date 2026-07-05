@@ -1,4 +1,14 @@
 import { getUserScopedRedisKey } from "@/entities/auth";
+import {
+  DEFAULT_OPENROUTER_MODEL,
+  normalizeOpenRouterModel,
+} from "@/shared/api/openrouter/models";
+
+export {
+  DEFAULT_OPENROUTER_MODEL,
+  OPENROUTER_MODEL_OPTIONS,
+  normalizeOpenRouterModel,
+} from "@/shared/api/openrouter/models";
 
 export const COVER_LETTER_SETTINGS_REDIS_KEY =
   "cover-letter-settings:default:json";
@@ -14,65 +24,6 @@ export const MESSAGE_FORMAT_VALUES = ["email", "message"] as const;
 export type MessageFormat = (typeof MESSAGE_FORMAT_VALUES)[number];
 
 export const DEFAULT_MESSAGE_FORMAT: MessageFormat = "email";
-
-export const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5.4-mini";
-
-export const OPENROUTER_MODEL_OPTIONS = [
-  {
-    value: "openai/gpt-5.4",
-    label: "GPT-5.4",
-    tier: "pro",
-    priceLabel: "$2.50 / $15",
-  },
-  {
-    value: "anthropic/claude-opus-4.8",
-    label: "Claude Opus 4.8",
-    tier: "pro",
-    priceLabel: "$5 / $25",
-  },
-  {
-    value: "deepseek/deepseek-v4-pro",
-    label: "DeepSeek V4 Pro",
-    tier: "pro",
-    priceLabel: "$0.435 / $0.87",
-  },
-  {
-    value: DEFAULT_OPENROUTER_MODEL,
-    label: "GPT-5.4 Mini",
-    tier: "balanced",
-    priceLabel: "$0.75 / $4.50",
-  },
-  {
-    value: "openai/gpt-5.4-nano",
-    label: "GPT-5.4 Nano",
-    tier: "balanced",
-    priceLabel: "$0.20 / $1.25",
-  },
-  {
-    value: "anthropic/claude-sonnet-5",
-    label: "Claude Sonnet 5",
-    tier: "balanced",
-    priceLabel: "$2 / $10",
-  },
-  {
-    value: "deepseek/deepseek-v4-flash",
-    label: "DeepSeek V4 Flash",
-    tier: "balanced",
-    priceLabel: "$0.089 / $0.18",
-  },
-  {
-    value: "qwen/qwen3.7-plus",
-    label: "Qwen3.7 Plus",
-    tier: "balanced",
-    priceLabel: "$0.32 / $1.28",
-  },
-  {
-    value: "nvidia/nemotron-3-nano-30b-a3b:free",
-    label: "Nemotron 3 Nano 30B Free",
-    tier: "free",
-    priceLabel: "$0 / $0",
-  },
-] as const;
 
 export const COVER_LETTER_TENSE_RULE =
   'Для английских писем текущий интерес, мотивацию и готовность обсудить роль писать в настоящем времени: "I\'m interested...", "I\'m excited about..." или "This role caught my attention because..."; не писать "I was interested...".';
@@ -108,7 +59,7 @@ const FLAT_DEFAULT_COVER_LETTER_RULES = [
   'Keep the interest sentence simple: "Меня заинтересовало [specific detail from the vacancy], потому что у меня есть опыт в [relevant experience]."',
   "If there is little company context, explain interest through the role's tasks, not through generic enthusiasm.",
   'Avoid abstract phrases such as "interesting project", "promising company", "great team", "I want to grow", or "the work is close to me".',
-  "Do not repeat the resume.",
+  "Do not restate the profile.",
   "Use only facts from the candidate profile and vacancy.",
   "Do not invent experience, metrics, technologies, employers, or achievements.",
   "Mention 2-4 relevant facts from my experience.",
@@ -142,7 +93,7 @@ export const DEFAULT_COVER_LETTER_RULES = [
   '- Keep the interest sentence simple: "Меня заинтересовало [specific detail from the vacancy], потому что у меня есть опыт в [relevant experience]."',
   "- If there is little company context, explain interest through the role's tasks, not through generic enthusiasm.",
   '- Avoid abstract phrases such as "interesting project", "promising company", "great team", "I want to grow", or "the work is close to me".',
-  "- Do not repeat the resume.",
+  "- Do not restate the profile.",
   "- Use only facts from the candidate profile and vacancy.",
   "- Do not invent experience, metrics, technologies, employers, or achievements.",
   "- Mention 2-4 relevant facts from my experience.",
@@ -225,16 +176,6 @@ export function normalizeCoverLetterSettings(
       readStringList(input.coverLetterRules),
     ),
   };
-}
-
-export function normalizeOpenRouterModel(model: string) {
-  const normalizedModel = writeLineValue(model);
-
-  return OPENROUTER_MODEL_OPTIONS.some(
-    (option) => option.value === normalizedModel,
-  )
-    ? normalizedModel
-    : DEFAULT_OPENROUTER_MODEL;
 }
 
 export function normalizeMessageFormat(

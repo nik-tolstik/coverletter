@@ -5,7 +5,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   FilePenLineIcon,
-  FileTextIcon,
   type LucideIcon,
 } from "lucide-react";
 
@@ -24,11 +23,6 @@ const navigationItems: NavigationItem[] = [
     href: "/",
     label: "Генерация",
     icon: FilePenLineIcon,
-  },
-  {
-    href: "/resume",
-    label: "Резюме",
-    icon: FileTextIcon,
   },
   {
     href: "/profile",

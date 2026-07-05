@@ -4,13 +4,17 @@ export type LanguageEntry = {
 };
 
 export const languageLevelOptions = [
-  { value: "Native", label: "Родной" },
-  { value: "C2", label: "C2" },
-  { value: "C1", label: "C1" },
-  { value: "B2", label: "B2" },
-  { value: "B1", label: "B1" },
-  { value: "A2", label: "A2" },
-  { value: "A1", label: "A1" },
+  { value: "Native", label: "Native", aliases: ["родной"] },
+  { value: "Fluent", label: "Fluent", aliases: ["C2"] },
+  { value: "Advanced", label: "Advanced", aliases: ["C1"] },
+  {
+    value: "Upper-Intermediate",
+    label: "Upper-Intermediate",
+    aliases: ["B2"],
+  },
+  { value: "Intermediate", label: "Intermediate", aliases: ["B1"] },
+  { value: "Pre-Intermediate", label: "Pre-Intermediate", aliases: ["A2"] },
+  { value: "Beginner", label: "Beginner", aliases: ["A1"] },
 ] as const;
 
 export function createEmptyLanguageEntry(): LanguageEntry {
@@ -94,7 +98,8 @@ function readLanguageLevel(value: string) {
   const option = languageLevelOptions.find(
     (item) =>
       item.value.toLowerCase() === normalizedValue ||
-      item.label.toLowerCase() === normalizedValue,
+      item.label.toLowerCase() === normalizedValue ||
+      item.aliases.some((alias) => alias.toLowerCase() === normalizedValue),
   );
 
   return option?.value;
@@ -129,12 +134,13 @@ function readBoundaryLanguageLevel(
   boundary: "start" | "end",
 ): { raw: string; value: string } | undefined {
   for (const option of languageLevelOptions) {
-    const escapedValue = escapeRegExp(option.value);
-    const escapedLabel = escapeRegExp(option.label);
+    const escapedLevels = [option.value, option.label, ...option.aliases]
+      .map(escapeRegExp)
+      .join("|");
     const pattern =
       boundary === "start"
-        ? new RegExp(`^(?:${escapedValue}|${escapedLabel})(?=\\s|$)`, "i")
-        : new RegExp(`(?:^|\\s)(${escapedValue}|${escapedLabel})$`, "i");
+        ? new RegExp(`^(?:${escapedLevels})(?=\\s|$)`, "i")
+        : new RegExp(`(?:^|\\s)(${escapedLevels})$`, "i");
     const match = value.match(pattern);
 
     const raw = boundary === "start" ? match?.[0] : match?.[1];
@@ -156,7 +162,7 @@ function escapeRegExp(value: string) {
 
 function getLanguageLevelPattern() {
   return languageLevelOptions
-    .flatMap((option) => [option.value, option.label])
+    .flatMap((option) => [option.value, option.label, ...option.aliases])
     .map(escapeRegExp)
     .join("|");
 }

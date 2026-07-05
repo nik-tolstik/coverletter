@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getConfiguredAppOrigin } from "@/shared/lib/app-origin";
+import { DEFAULT_OPENROUTER_MODEL } from "./models";
 
 type ChatMessage = {
   role: "system" | "user";
@@ -8,6 +9,7 @@ type ChatMessage = {
 };
 
 type ChatCompletionOptions = {
+  maxTokens?: number;
   model?: string;
 };
 
@@ -40,8 +42,6 @@ type OpenRouterErrorMetadata = Record<string, unknown> & {
   retry_after_seconds_raw?: number;
 };
 
-const DEFAULT_OPENROUTER_MODEL = "openai/gpt-5.4-mini";
-
 export async function createChatCompletion(
   messages: ChatMessage[],
   options: ChatCompletionOptions = {},
@@ -57,6 +57,7 @@ export async function createChatCompletion(
 
   return requestChatCompletion({
     apiKey,
+    maxTokens: options.maxTokens,
     messages,
     model: requestedModel,
   });
@@ -64,10 +65,12 @@ export async function createChatCompletion(
 
 async function requestChatCompletion({
   apiKey,
+  maxTokens,
   messages,
   model,
 }: {
   apiKey: string;
+  maxTokens?: number;
   messages: ChatMessage[];
   model: string;
 }): Promise<ChatCompletionResult> {
@@ -77,7 +80,7 @@ async function requestChatCompletion({
     body: JSON.stringify({
       model,
       messages,
-      max_tokens: 2000,
+      max_tokens: maxTokens ?? 2000,
       provider: {
         allow_fallbacks: false,
       },
