@@ -5,7 +5,7 @@ import { headers } from "next/headers";
 import { getEmailFromAddress, getResend } from "@/shared/api/resend";
 import {
   getConfiguredAppOrigin,
-  getVercelDeploymentOrigin,
+  getVercelAppOrigin,
 } from "@/shared/lib/app-origin";
 
 export async function sendVerificationEmail(email: string, token: string) {
@@ -78,7 +78,7 @@ async function buildAuthUrl(path: string) {
     getConfiguredAppOrigin() ??
     requestHeaders.get("origin") ??
     buildOriginFromHeaders(requestHeaders) ??
-    getVercelDeploymentOrigin() ??
+    getVercelAppOrigin() ??
     "http://localhost:3000";
 
   return new URL(path, origin).toString();

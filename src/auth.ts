@@ -4,10 +4,10 @@ import Credentials from "next-auth/providers/credentials";
 import { verifyAuthUserCredentials } from "@/entities/auth/server";
 import {
   getConfiguredAppOrigin,
-  getVercelDeploymentOrigin,
+  getVercelAppOrigin,
 } from "@/shared/lib/app-origin";
 
-const authOrigin = getConfiguredAppOrigin() ?? getVercelDeploymentOrigin();
+const authOrigin = getConfiguredAppOrigin() ?? getVercelAppOrigin();
 
 if (authOrigin) {
   process.env.AUTH_URL = authOrigin;

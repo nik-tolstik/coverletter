@@ -1,8 +1,8 @@
 const VERCEL_URL_REFERENCES = new Map([
-  ["$VERCEL_URL", "VERCEL_URL"],
-  ["${VERCEL_URL}", "VERCEL_URL"],
-  ["$VERCEL_PROJECT_PRODUCTION_URL", "VERCEL_PROJECT_PRODUCTION_URL"],
-  ["${VERCEL_PROJECT_PRODUCTION_URL}", "VERCEL_PROJECT_PRODUCTION_URL"],
+  ["$VERCEL_URL", getVercelOriginValue],
+  ["${VERCEL_URL}", getVercelOriginValue],
+  ["$VERCEL_PROJECT_PRODUCTION_URL", () => process.env.VERCEL_PROJECT_PRODUCTION_URL],
+  ["${VERCEL_PROJECT_PRODUCTION_URL}", () => process.env.VERCEL_PROJECT_PRODUCTION_URL],
 ]);
 
 export function getConfiguredAppOrigin(
@@ -17,10 +17,8 @@ export function getConfiguredAppOrigin(
   return normalizeAppOrigin(resolvedValue);
 }
 
-export function getVercelDeploymentOrigin() {
-  return normalizeAppOrigin(
-    process.env.VERCEL_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL,
-  );
+export function getVercelAppOrigin() {
+  return normalizeAppOrigin(getVercelOriginValue());
 }
 
 function resolveAppOriginValue(value?: string) {
@@ -33,10 +31,25 @@ function resolveAppOriginValue(value?: string) {
   const envReference = VERCEL_URL_REFERENCES.get(trimmedValue);
 
   if (envReference) {
-    return process.env[envReference];
+    return envReference();
   }
 
   return trimmedValue;
+}
+
+function getVercelOriginValue() {
+  if (isVercelProductionEnvironment()) {
+    return process.env.VERCEL_PROJECT_PRODUCTION_URL ?? process.env.VERCEL_URL;
+  }
+
+  return process.env.VERCEL_URL ?? process.env.VERCEL_PROJECT_PRODUCTION_URL;
+}
+
+function isVercelProductionEnvironment() {
+  return (
+    process.env.VERCEL_ENV === "production" ||
+    process.env.VERCEL_TARGET_ENV === "production"
+  );
 }
 
 function normalizeAppOrigin(value?: string) {

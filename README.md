@@ -67,7 +67,7 @@ RESEND_FROM_EMAIL=
 ```
 
 `AUTH_URL` can be omitted locally when the request host is available. `RESEND_FROM_EMAIL` defaults to Resend's test sender if it is not configured.
-When `AUTH_URL` is configured on Vercel, use an absolute URL such as `https://coverletter.example.com`. Vercel's `VERCEL_URL` value does not include the protocol.
+When `AUTH_URL` is configured on Vercel, use an absolute URL such as `https://coverletter.example.com`. If it is omitted, production deployments use Vercel's project production URL before the generated deployment URL.
 
 ## Scripts
 

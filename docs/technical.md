@@ -152,7 +152,7 @@ RESEND_API_KEY=
 RESEND_FROM_EMAIL=
 ```
 
-`AUTH_URL` and `OPENROUTER_SITE_URL`, when configured, should be absolute URLs with a protocol. Vercel's system `VERCEL_URL` is a host value without `https://`; the app normalizes `$VERCEL_URL` and `${VERCEL_URL}` for deployment safety, but explicit production values are easier to audit.
+`AUTH_URL` and `OPENROUTER_SITE_URL`, when configured, should be absolute URLs with a protocol. Vercel's system URL values do not include `https://`; the app normalizes them and resolves production auth origins through `VERCEL_PROJECT_PRODUCTION_URL` before falling back to the generated deployment URL.
 
 The Redis client also accepts `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`; use whichever pair the Vercel integration provides.
 

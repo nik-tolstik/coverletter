@@ -203,7 +203,7 @@ BLOB_READ_WRITE_TOKEN=
 
 Avatar files are uploaded with private Blob access and delivered through the authenticated `/api/profile/avatar` route. This keeps the read-write token server-side and supports private Blob stores.
 
-`AUTH_URL`, when configured, must be an absolute URL with a protocol, for example `https://coverletter.example.com`. Vercel's `VERCEL_URL` system variable contains only the host.
+`AUTH_URL`, when configured, must be an absolute URL with a protocol, for example `https://coverletter.example.com`. If it is omitted on Vercel, production deployments use the project production URL before falling back to the generated deployment URL.
 
 ## Security Rules
 
