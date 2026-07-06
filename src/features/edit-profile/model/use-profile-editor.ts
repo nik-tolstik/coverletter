@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import {
   createEmptyCompany,
+  createEmptyEducationItem,
   createEmptyExperienceProject,
   createEmptySkillCategory,
   createEmptyStandaloneProject,
@@ -19,6 +20,7 @@ import {
   useUploadAvatarMutation,
 } from "@/entities/profile";
 import type { ProfileState } from "@/entities/profile";
+import type { EducationItemForm } from "@/entities/profile";
 
 import { removeAt, removeAtOrEmpty, serializeProfile } from "./collection";
 
@@ -311,6 +313,29 @@ export function useProfileEditor(
     }));
   }
 
+  function updateEducationItem(index: number, nextItem: EducationItemForm) {
+    setProfile((current) => ({
+      ...current,
+      education: current.education.map((item, itemIndex) =>
+        itemIndex === index ? nextItem : item,
+      ),
+    }));
+  }
+
+  function addEducationItem() {
+    setProfile((current) => ({
+      ...current,
+      education: [...current.education, createEmptyEducationItem()],
+    }));
+  }
+
+  function removeEducationItem(index: number) {
+    setProfile((current) => ({
+      ...current,
+      education: removeAtOrEmpty(current.education, index),
+    }));
+  }
+
   function updateStandaloneProject(
     index: number,
     nextProject: StandaloneProjectForm,
@@ -361,6 +386,9 @@ export function useProfileEditor(
     updateExperienceProject,
     addExperienceProject,
     removeExperienceProject,
+    updateEducationItem,
+    addEducationItem,
+    removeEducationItem,
     updateStandaloneProject,
     addStandaloneProject,
     removeStandaloneProject,

@@ -43,6 +43,13 @@ const projectFields = [
   "workDescription",
 ] as const satisfies readonly (keyof ProfileFormState["projects"][number])[];
 
+const educationFields = [
+  "institution",
+  "degree",
+  "dates",
+  "description",
+] as const satisfies readonly (keyof ProfileFormState["education"][number])[];
+
 export const profileWriteRequestSchema = {
   safeParse(input: unknown): ParseResult<{ profile: ProfileFormState }> {
     if (
@@ -78,6 +85,8 @@ function isProfileFormState(input: unknown): input is ProfileFormState {
     input.skills.every(isSkillCategory) &&
     Array.isArray(input.experience) &&
     input.experience.every(isExperienceCompany) &&
+    Array.isArray(input.education) &&
+    input.education.every(isEducationItem) &&
     Array.isArray(input.projects) &&
     input.projects.every(isProject)
   );
@@ -107,6 +116,12 @@ function isExperienceCompany(
 
 function isProject(input: unknown): input is ProfileFormState["projects"][number] {
   return isRecord(input) && hasStringFields(input, projectFields);
+}
+
+function isEducationItem(
+  input: unknown,
+): input is ProfileFormState["education"][number] {
+  return isRecord(input) && hasStringFields(input, educationFields);
 }
 
 function hasStringFields<T extends string>(

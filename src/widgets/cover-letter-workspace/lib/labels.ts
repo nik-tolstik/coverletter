@@ -1,11 +1,4 @@
-import {
-  OPENROUTER_MODEL_OPTIONS,
-  type MessageFormat,
-} from "@/entities/cover-letter-settings";
-
-export function getMessageFormatLabel(messageFormat: MessageFormat) {
-  return messageFormat === "email" ? "Email" : "Сообщение";
-}
+import { OPENROUTER_MODEL_OPTIONS } from "@/entities/cover-letter-settings";
 
 export function getModelLabel(model: string) {
   return (

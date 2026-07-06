@@ -1,7 +1,8 @@
 import {
-  DEFAULT_COVER_LETTER_RULES,
+  DEFAULT_MESSAGE_FORMAT,
+  getDefaultCoverLetterRules,
   type MessageFormat,
-  normalizeMessageFormat,
+  normalizeCoverLetterLanguage,
   normalizeOpenRouterModel,
 } from "@/entities/cover-letter-settings";
 
@@ -25,9 +26,9 @@ export const generateCoverLetterRequestSchema = {
     }
 
     const vacancyText = readRequiredString(input.vacancyText);
-    const language = readRequiredString(input.language);
+    const language = normalizeCoverLetterLanguage(input.language);
 
-    if (!vacancyText || !language) {
+    if (!vacancyText) {
       return { success: false, error: "Заполните обязательные поля." };
     }
 
@@ -38,11 +39,8 @@ export const generateCoverLetterRequestSchema = {
         vacancyText,
         language,
         additionalWishes: readOptionalString(input.additionalWishes),
-        messageFormat: normalizeMessageFormat(input.messageFormat),
-        coverLetterRules: readStringList(
-          input.coverLetterRules,
-          DEFAULT_COVER_LETTER_RULES,
-        ),
+        messageFormat: DEFAULT_MESSAGE_FORMAT,
+        coverLetterRules: getDefaultCoverLetterRules(language),
       },
     };
   },
@@ -60,17 +58,4 @@ function readRequiredString(value: unknown) {
 
 function readOptionalString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function readStringList(value: unknown, fallback: string[]) {
-  const rules = Array.isArray(value)
-    ? value.map(readOptionalString).filter(Boolean)
-    : typeof value === "string"
-      ? value
-          .split("\n")
-          .map(readOptionalString)
-          .filter(Boolean)
-      : [];
-
-  return rules.length ? rules : fallback;
 }

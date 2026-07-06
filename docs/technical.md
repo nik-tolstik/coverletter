@@ -2,7 +2,7 @@
 
 ## Overview
 
-Coverletter is a Next.js application that generates cover letters from a detailed personal JSON profile. It is developed as a private single-user tool for one person, not as a multi-user SaaS or scalable platform. The profile is the main source of truth for factual AI context: it contains experience, skills, projects, and career context. The user adds a vacancy description, selects a language, chooses a message format, adjusts writing rules, and provides optional extra wishes before generation.
+Coverletter is a Next.js application that generates cover letters from a detailed personal JSON profile. It is developed as a private single-user tool for one person, not as a multi-user SaaS or scalable platform. The profile is the main source of truth for factual AI context: it contains experience, education, skills, projects, and career context. The user adds a vacancy description, selects Russian or English as the target language, and provides optional extra wishes before generation. Output is always generated as a direct message, and writing rules are language-specific internal presets.
 
 ## Current Stack
 
@@ -29,14 +29,14 @@ The user profile is stored as structured JSON so form fields round-trip without 
 
 Uploaded avatars are stored in Vercel Blob Storage. The profile JSON stores only the Blob URL under `identity.avatarUrl`, and the UI reads the image through an authenticated avatar route.
 
-The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, and projects. Cover letter rules and message format are per-letter generation settings, not profile data.
+The prompt-facing Markdown structure is documented in [Markdown profile structure](profile-markdown.md). The JSON source includes identity, links, skills, experience, education, and projects. Cover letter rules and output format are generation behavior, not profile data.
 
 Persisted cover letter settings:
 
 - `model`: OpenRouter model used for generation.
-- `language`: target output language, initially `ru` and `en`.
-- `messageFormat`: output format selector value, either `email` or `message`.
-- `coverLetterRules`: editable rules for the current letter.
+- `language`: target output language, either `Russian` or `English`.
+- `messageFormat`: hidden compatibility field normalized to `message`.
+- `coverLetterRules`: internal language-specific rules used for prompt and history compatibility, not shown or edited in the interface.
 
 Current generation inputs:
 
@@ -46,7 +46,7 @@ Current generation inputs:
 
 Saved settings are persisted separately from the profile so the factual profile stays reusable while the current letter workflow can keep generation preferences between sessions. Vacancy text and additional wishes are not persisted as settings.
 
-Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, generation duration, vacancy text, language, message format, additional wishes, and rules used for that generation.
+Generated cover letters are persisted as a bounded history list. Each entry stores the generated text, creation timestamp, generation duration, vacancy text, language, additional wishes, and rules used for that generation.
 
 Authentication is email/password based. New users receive a confirmation email before they can sign in. Password reset links are sent through Resend.
 
@@ -110,18 +110,16 @@ Folder rules:
 The system prompt should include:
 
 - Markdown generated from the structured JSON profile.
-- Writing rules from the current letter settings.
-- Message format from the current letter settings.
+- Language-specific writing rules selected from the target language.
+- Fixed direct-message output rules.
 - Safety rule: do not invent facts, metrics, employers, or achievements.
 - Language/output rules.
 
 The user prompt should include:
 
 - Vacancy text.
-- Selected language.
+- Selected target language.
 - Additional wishes.
-- Cover letter rules for the current generation.
-- Message format for the current generation.
 - Any explicit constraints for the current letter.
 
 Generation should be implemented behind a server boundary so provider keys never reach the browser. The initial implementation can use a Route Handler such as `src/app/api/cover-letter/route.ts` or a Server Action, with the provider hidden behind `src/shared/api/ai`.
@@ -192,7 +190,7 @@ Likely first components:
 Primary screen layout:
 
 - `/profile` page for editing the saved profile.
-- Root page with vacancy/settings panel for language, message format, writing rules, additional wishes, and the current vacancy text.
+- Root page with vacancy/settings panel for language, additional wishes, and the current vacancy text.
 - Generated cover letter preview with copy/regenerate actions.
 - Keep all visible application UI copy in Russian.
 

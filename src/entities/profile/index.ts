@@ -7,6 +7,7 @@ export {
 } from "./model/constants";
 export {
   createEmptyCompany,
+  createEmptyEducationItem,
   createEmptyExperienceProject,
   createEmptyProfileJson,
   createEmptySkillCategory,
@@ -21,6 +22,7 @@ export {
 } from "./model/structured-profile";
 export type { ProfileState } from "./model/types";
 export type {
+  EducationItemForm,
   ExperienceCompanyForm,
   ExperienceProjectForm,
   ProfileFormState,

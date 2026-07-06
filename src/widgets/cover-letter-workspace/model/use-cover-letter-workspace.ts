@@ -11,9 +11,10 @@ import {
 } from "@/entities/cover-letter-history";
 import {
   DEFAULT_COVER_LETTER_LANGUAGE,
-  DEFAULT_COVER_LETTER_RULES,
   DEFAULT_MESSAGE_FORMAT,
   DEFAULT_OPENROUTER_MODEL,
+  getDefaultCoverLetterRules,
+  normalizeCoverLetterLanguage,
   type CoverLetterSettingsForm,
   type CoverLetterSettingsState,
   useCoverLetterSettingsQuery,
@@ -26,7 +27,6 @@ import {
   createGenerationReadySound,
   type GenerationReadySound,
 } from "../lib/generation-ready-sound";
-import { splitLines } from "../lib/rules";
 import { SETTINGS_SAVE_DEBOUNCE_MS } from "./constants";
 import type { LetterGenerationSettings, SavedLetterSettings } from "./types";
 
@@ -69,17 +69,10 @@ export function useCoverLetterWorkspace({
   const [model, setModel] = useState(
     initialSettingsForm.model || DEFAULT_OPENROUTER_MODEL,
   );
-  const [language, setLanguage] = useState(
-    initialSettingsForm.language || DEFAULT_COVER_LETTER_LANGUAGE,
+  const [language, setLanguageState] = useState(
+    normalizeCoverLetterLanguage(initialSettingsForm.language),
   );
   const [additionalWishes, setAdditionalWishes] = useState("");
-  const [messageFormat, setMessageFormat] = useState(
-    initialSettingsForm.messageFormat ?? DEFAULT_MESSAGE_FORMAT,
-  );
-  const [coverLetterRules, setCoverLetterRules] = useState(
-    initialSettingsForm.coverLetterRules.join("\n") ||
-      DEFAULT_COVER_LETTER_RULES.join("\n"),
-  );
   const [coverLetter, setCoverLetter] = useState("");
   const saveQueueRef = useRef<SaveQueueState>({
     isRunning: false,
@@ -92,34 +85,31 @@ export function useCoverLetterWorkspace({
     () => getSavedLetterSettings(settingsQuery.data.settings),
     [settingsQuery.data.settings],
   );
+  const coverLetterRules = useMemo(
+    () => getDefaultCoverLetterRules(language),
+    [language],
+  );
   const hasLetterContent = isGenerating || Boolean(coverLetter);
   const canGenerateLetter = vacancyText.trim().length > 0;
   const currentSettings = useMemo<LetterGenerationSettings>(
     () => ({
       model,
       language,
-      messageFormat,
-      coverLetterRules: splitLines(coverLetterRules),
+      messageFormat: DEFAULT_MESSAGE_FORMAT,
+      coverLetterRules,
       vacancyText,
       additionalWishes,
     }),
-    [
-      additionalWishes,
-      coverLetterRules,
-      language,
-      messageFormat,
-      model,
-      vacancyText,
-    ],
+    [additionalWishes, coverLetterRules, language, model, vacancyText],
   );
   const currentSavedSettings = useMemo<SavedLetterSettings>(
     () => ({
       model,
       language,
-      messageFormat,
-      coverLetterRules: splitLines(coverLetterRules),
+      messageFormat: DEFAULT_MESSAGE_FORMAT,
+      coverLetterRules,
     }),
-    [coverLetterRules, language, messageFormat, model],
+    [coverLetterRules, language, model],
   );
   const isSettingsDirty =
     serializeSettings(currentSavedSettings) !== serializeSettings(savedSettings);
@@ -197,20 +187,19 @@ export function useCoverLetterWorkspace({
 
   const repeatHistoryItem = useCallback(
     (item: CoverLetterHistoryItem) => {
-      const nextRules = item.coverLetterRules.join("\n");
+      const nextLanguage = normalizeCoverLetterLanguage(item.language);
+      const nextRules = getDefaultCoverLetterRules(nextLanguage);
       const nextSettings: LetterGenerationSettings = {
         model: item.model,
-        language: item.language,
-        messageFormat: item.messageFormat,
-        coverLetterRules: item.coverLetterRules,
+        language: nextLanguage,
+        messageFormat: DEFAULT_MESSAGE_FORMAT,
+        coverLetterRules: nextRules,
         vacancyText: item.vacancyText,
         additionalWishes: item.additionalWishes,
       };
 
       setModel(item.model);
-      setLanguage(item.language);
-      setMessageFormat(item.messageFormat);
-      setCoverLetterRules(nextRules);
+      setLanguageState(nextLanguage);
       setVacancyText(item.vacancyText);
       setAdditionalWishes(item.additionalWishes);
       setCoverLetter(item.coverLetter);
@@ -263,6 +252,10 @@ export function useCoverLetterWorkspace({
       });
   }, [clearHistoryMutateAsync]);
 
+  const setLanguage = useCallback((value: string) => {
+    setLanguageState(normalizeCoverLetterLanguage(value));
+  }, []);
+
   return {
     history,
     vacancyText,
@@ -273,10 +266,6 @@ export function useCoverLetterWorkspace({
     setLanguage,
     additionalWishes,
     setAdditionalWishes,
-    messageFormat,
-    setMessageFormat,
-    coverLetterRules,
-    setCoverLetterRules,
     coverLetter,
     isGenerating,
     isClearingHistory,
@@ -301,12 +290,14 @@ function serializeSettings(settings: SavedLetterSettings) {
 function getSavedLetterSettings(
   settings: CoverLetterSettingsForm,
 ): SavedLetterSettings {
+  const language = normalizeCoverLetterLanguage(
+    settings.language || DEFAULT_COVER_LETTER_LANGUAGE,
+  );
+
   return {
     model: settings.model || DEFAULT_OPENROUTER_MODEL,
-    language: settings.language || DEFAULT_COVER_LETTER_LANGUAGE,
-    messageFormat: settings.messageFormat ?? DEFAULT_MESSAGE_FORMAT,
-    coverLetterRules: settings.coverLetterRules.length
-      ? settings.coverLetterRules
-      : DEFAULT_COVER_LETTER_RULES,
+    language,
+    messageFormat: DEFAULT_MESSAGE_FORMAT,
+    coverLetterRules: getDefaultCoverLetterRules(language),
   };
 }

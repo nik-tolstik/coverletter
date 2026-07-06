@@ -1,13 +1,13 @@
 # Coverletter
 
-Coverletter is a personal AI assistant for generating tailored cover letters from a structured JSON profile. It is built as a one-person tool for my own job search, not as a multi-user product or scalable platform. The app keeps my experience, skills, projects, and achievements in one structured profile, then combines it with a vacancy description, language choice, message format, writing rules, and additional wishes to generate a focused cover letter.
+Coverletter is a personal AI assistant for generating tailored cover letters from a structured JSON profile. It is built as a one-person tool for my own job search, not as a multi-user product or scalable platform. The app keeps my experience, skills, projects, and achievements in one structured profile, then combines it with a vacancy description, language choice, language-specific writing rules, and additional wishes to generate a focused cover letter.
 
 ## Product Idea
 
 - Structured JSON profile with name, role, years of experience, social links, skills grouped by custom categories, and project-based experience.
 - Email/password authentication with Auth.js, confirmation and password reset emails through Resend.
 - User-scoped profile, cover letter settings, and history persistence in Upstash Redis through Vercel Marketplace.
-- Cover letter settings: target language, message format, model, and generation rules. Vacancy text and extra wishes are current-generation inputs, not saved settings.
+- Cover letter settings: target language, either Russian or English, and model. Output is always generated as a direct message. Language-specific generation rules are internal and not shown in the interface. Vacancy text and extra wishes are current-generation inputs, not saved settings.
 - AI prompt assembly that generates Markdown from the JSON profile and passes it as system context.
 - OpenRouter as the AI gateway, with `openai/gpt-5.4-mini` as the default generation model.
 - Simple feature folders to keep the personal app understandable.

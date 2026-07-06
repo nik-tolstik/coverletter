@@ -51,6 +51,14 @@ export const EMPTY_PROFILE_MARKDOWN = `# Profile
 - Stack:
 - What I did:
 
+## Education
+
+### Institution Name
+
+- Degree:
+- Dates:
+- Description:
+
 ## Projects
 
 ### Project Name

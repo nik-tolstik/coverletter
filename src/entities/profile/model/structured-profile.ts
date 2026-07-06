@@ -17,11 +17,12 @@ export type ProfileFormState = {
   };
   skills: SkillCategoryForm[];
   experience: ExperienceCompanyForm[];
+  education: EducationItemForm[];
   projects: StandaloneProjectForm[];
 };
 
 export type ProfileJsonState = {
-  schemaVersion: 7;
+  schemaVersion: 8;
   identity: {
     avatarUrl: string;
     name: string;
@@ -40,6 +41,7 @@ export type ProfileJsonState = {
   };
   skills: SkillCategoryForm[];
   experience: ExperienceCompanyForm[];
+  education: EducationItemForm[];
   projects: StandaloneProjectForm[];
 };
 
@@ -68,6 +70,13 @@ export type ExperienceProjectForm = {
   role: string;
   stack: string;
   workDescription: string;
+};
+
+export type EducationItemForm = {
+  institution: string;
+  degree: string;
+  dates: string;
+  description: string;
 };
 
 export type StandaloneProjectForm = {
@@ -117,6 +126,7 @@ export function createEmptyProfileForm(): ProfileFormState {
     },
     skills: [createEmptySkillCategory()],
     experience: [createEmptyCompany()],
+    education: [createEmptyEducationItem()],
     projects: [createEmptyStandaloneProject()],
   };
 }
@@ -150,6 +160,15 @@ export function createEmptyExperienceProject(): ExperienceProjectForm {
     role: "",
     stack: "",
     workDescription: "",
+  };
+}
+
+export function createEmptyEducationItem(): EducationItemForm {
+  return {
+    institution: "",
+    degree: "",
+    dates: "",
+    description: "",
   };
 }
 
@@ -201,6 +220,7 @@ export function parseMarkdownToProfileForm(
     },
     skills: readSkillCategories(skills),
     experience: readExperience(readSection(markdown, "Experience")),
+    education: readEducation(readSection(markdown, "Education")),
     projects: readProjects(readSection(markdown, "Projects")),
   };
 }
@@ -225,7 +245,7 @@ export function normalizeProfileJson(
   const links = readRecord(input.links);
 
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     identity: {
       avatarUrl: readString(identity.avatarUrl),
       name: readString(identity.name),
@@ -244,6 +264,7 @@ export function normalizeProfileJson(
     },
     skills: readSkillCategoriesJson(input.skills, fallback.skills),
     experience: readExperienceJson(input.experience, fallback.experience),
+    education: readEducationJson(input.education, fallback.education),
     projects: readProjectsJson(input.projects, fallback.projects),
   };
 }
@@ -265,13 +286,14 @@ export function profileJsonToForm(profile: ProfileJsonState): ProfileFormState {
     links: profile.links,
     skills: profile.skills,
     experience: profile.experience,
+    education: profile.education,
     projects: profile.projects,
   };
 }
 
 export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
   return {
-    schemaVersion: 7,
+    schemaVersion: 8,
     identity: {
       avatarUrl: writeLineValue(profile.identity.avatarUrl),
       name: writeLineValue(profile.identity.name),
@@ -302,6 +324,12 @@ export function profileFormToJson(profile: ProfileFormState): ProfileJsonState {
         stack: writeLineValue(project.stack),
         workDescription: writeTextValue(project.workDescription),
       })),
+    })),
+    education: profile.education.map((item) => ({
+      institution: writeLineValue(item.institution),
+      degree: writeLineValue(item.degree),
+      dates: writeLineValue(item.dates),
+      description: writeTextValue(item.description),
     })),
     projects: profile.projects.map((project) => ({
       name: writeLineValue(project.name),
@@ -343,6 +371,10 @@ ${writeSkillCategories(profile.skills)}
 ## Experience
 
 ${writeExperience(profile.experience)}
+
+## Education
+
+${writeEducation(profile.education)}
 
 ## Projects
 
@@ -489,6 +521,28 @@ function readProjects(section: string) {
   });
 }
 
+function readEducation(section: string) {
+  return splitHeadingBlocks(section, 3).map(({ title, body }) => {
+    const labels = readLabeledBullets(body);
+
+    return {
+      institution: title === "Institution Name" ? "" : title,
+      degree:
+        readLabel(
+          labels,
+          "Degree",
+          "Education",
+          "Program",
+          "Квалификация",
+          "Образование",
+          "Программа",
+        ) ?? "",
+      dates: readLabel(labels, "Dates", "Даты") ?? "",
+      description: readLabeledBlock(body, "Description", "Описание"),
+    };
+  });
+}
+
 function readSkillCategories(section: string) {
   const categories = splitHeadingBlocks(section, 3).map(({ title, body }) => ({
     name: title === "Category Name" ? "" : title,
@@ -597,6 +651,16 @@ ${ensureExperienceProjects(company.projects)
 ${writeLabeledBlock("What I did", project.workDescription)}`)
   .join("\n\n")}`;
     })
+    .join("\n\n");
+}
+
+function writeEducation(items: EducationItemForm[]) {
+  return items
+    .map((item) => `### ${writeHeadingValue(item.institution || "Institution Name", "Institution Name")}
+
+- Degree: ${writeLineValue(item.degree)}
+- Dates: ${writeLineValue(item.dates)}
+${writeLabeledBlock("Description", item.description)}`)
     .join("\n\n");
 }
 
@@ -840,6 +904,23 @@ function readExperienceProjectsJson(input: unknown) {
   });
 
   return ensureExperienceProjects(projects);
+}
+
+function readEducationJson(input: unknown, fallback: EducationItemForm[]) {
+  if (!Array.isArray(input)) {
+    return fallback;
+  }
+
+  return input.map((item) => {
+    const educationItem = readRecord(item);
+
+    return {
+      institution: readString(educationItem.institution),
+      degree: readString(educationItem.degree),
+      dates: readString(educationItem.dates),
+      description: readText(educationItem.description),
+    };
+  });
 }
 
 function readProjectsJson(input: unknown, fallback: StandaloneProjectForm[]) {

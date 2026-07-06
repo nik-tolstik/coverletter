@@ -28,7 +28,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/shared/ui/tooltip";
 
 import {
   formatHistoryDate,
-  getMessageFormatLabel,
   getModelLabel,
 } from "../lib/labels";
 import type { HistoryItemAction } from "../model/types";
@@ -176,9 +175,6 @@ function HistoryList({
             </span>
             <span className="flex flex-wrap gap-1.5">
               <Badge variant="outline">{getLanguageLabel(item.language)}</Badge>
-              <Badge variant="outline">
-                {getMessageFormatLabel(item.messageFormat)}
-              </Badge>
               <Badge variant="outline">{getModelLabel(item.model)}</Badge>
             </span>
             <span className="line-clamp-2 text-xs leading-5 text-muted-foreground">
@@ -202,19 +198,11 @@ function HistoryList({
 function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
   return (
     <div className="grid gap-3">
-      <div className="grid gap-4 sm:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2">
         <Field>
           <FieldTitle>Язык</FieldTitle>
           <HistoryReadonlyValue>
             <HistoryLanguageValue language={item.language} />
-          </HistoryReadonlyValue>
-        </Field>
-        <Field>
-          <FieldTitle>Формат</FieldTitle>
-          <HistoryReadonlyValue>
-            <span className="min-w-0 truncate">
-              {getMessageFormatLabel(item.messageFormat)}
-            </span>
           </HistoryReadonlyValue>
         </Field>
         <Field>
@@ -227,17 +215,6 @@ function HistoryItemDetails({ item }: { item: CoverLetterHistoryItem }) {
           </HistoryReadonlyValue>
         </Field>
       </div>
-
-      <HistoryCollapsibleCard
-        title="Правила письма"
-        contentId="history-rules-content"
-        defaultOpen={false}
-      >
-        <HistoryReadonlyText
-          value={item.coverLetterRules.join("\n")}
-          className="min-h-28"
-        />
-      </HistoryCollapsibleCard>
 
       <HistoryCollapsibleCard
         title="Дополнительные пожелания"

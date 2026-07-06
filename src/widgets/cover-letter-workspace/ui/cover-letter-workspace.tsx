@@ -8,7 +8,6 @@ import { Button } from "@/shared/ui/button";
 
 import { useCoverLetterWorkspace } from "../model/use-cover-letter-workspace";
 import { AdditionalWishesCard } from "./additional-wishes-card";
-import { CoverLetterRulesCard } from "./cover-letter-rules-card";
 import { GeneratedLetterCard } from "./generated-letter-card";
 import { HistoryDialog } from "./history-dialog";
 import { SettingsCard } from "./settings-card";
@@ -49,15 +48,8 @@ export function CoverLetterWorkspace({
           <SettingsCard
             model={workspace.model}
             language={workspace.language}
-            messageFormat={workspace.messageFormat}
             onModelChange={workspace.setModel}
             onLanguageChange={workspace.setLanguage}
-            onMessageFormatChange={workspace.setMessageFormat}
-          />
-
-          <CoverLetterRulesCard
-            value={workspace.coverLetterRules}
-            onValueChange={workspace.setCoverLetterRules}
           />
 
           <AdditionalWishesCard

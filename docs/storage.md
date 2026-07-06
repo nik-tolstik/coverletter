@@ -57,7 +57,7 @@ The JSON value follows `ProfileJsonState`:
 
 ```json
 {
-  "schemaVersion": 7,
+  "schemaVersion": 8,
   "identity": {
     "avatarUrl": "",
     "name": "",
@@ -95,6 +95,14 @@ The JSON value follows `ProfileJsonState`:
       ]
     }
   ],
+  "education": [
+    {
+      "institution": "University Name",
+      "degree": "Bachelor's degree",
+      "dates": "2018-2022",
+      "description": "Studied software engineering fundamentals."
+    }
+  ],
   "projects": [
     {
       "name": "Coverletter",
@@ -108,14 +116,14 @@ The JSON value follows `ProfileJsonState`:
 
 Markdown is generated from JSON only when the AI prompt needs it.
 
-The saved settings value stores reusable generation preferences. Vacancy text and additional wishes are current-generation inputs and are not saved here.
+The saved settings value stores reusable generation preferences. It also carries hidden compatibility fields for direct-message output and language-specific `coverLetterRules` snapshots used by prompt and history code. The `language` value can be `Russian` or `English`. Vacancy text and additional wishes are current-generation inputs and are not saved here.
 
 ```json
 {
   "schemaVersion": 5,
   "model": "openai/gpt-5.4-mini",
   "language": "English",
-  "messageFormat": "email",
+  "messageFormat": "message",
   "coverLetterRules": ["Вывести только текст письма."]
 }
 ```
@@ -136,7 +144,7 @@ The generated history value stores the most recent letters, generation duration,
       "vacancyText": "Vacancy text",
       "language": "English",
       "additionalWishes": "",
-      "messageFormat": "email",
+      "messageFormat": "message",
       "coverLetterRules": ["Вывести только текст письма."]
     }
   ]

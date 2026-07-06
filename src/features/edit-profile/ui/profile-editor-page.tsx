@@ -15,6 +15,7 @@ import {
 } from "@/shared/ui/dropdown-menu";
 
 import { SaveChangesBar } from "./save-changes-bar";
+import { EducationSection } from "./sections/education-section";
 import { ExperienceSection } from "./sections/experience-section";
 import { IdentitySection } from "./sections/identity-section";
 import { LinksSection } from "./sections/links-section";
@@ -95,6 +96,13 @@ export function ProfileEditorPage({
           onProjectChange={editor.updateExperienceProject}
           onProjectAdd={editor.addExperienceProject}
           onProjectRemove={editor.removeExperienceProject}
+        />
+
+        <EducationSection
+          education={editor.profile.education}
+          onAdd={editor.addEducationItem}
+          onChange={editor.updateEducationItem}
+          onRemove={editor.removeEducationItem}
         />
 
         <StandaloneProjectsSection

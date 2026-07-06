@@ -6,9 +6,9 @@ The Markdown profile is the main factual source for cover letter generation. It 
 
 - Write facts in first person or neutral professional style, but keep them concrete.
 - Prefer project role, stack, and a concrete free-form contribution description over generic responsibility lists.
-- Group skills by practical category and let experience, projects, and outcomes show depth.
+- Group skills by practical category and let experience, education, projects, and outcomes show depth.
 - Keep all claims verifiable from the profile; if something is not in the profile, the generated letter must not claim it.
-- Keep cover letter rules and message format in the letter settings, not in the profile.
+- Keep cover letter rules and output behavior outside the profile.
 
 ## MVP Sections
 
@@ -19,7 +19,8 @@ Use this section order for v1:
 3. `## Links`
 4. `## Skills`
 5. `## Experience`
-6. `## Projects`
+6. `## Education`
+7. `## Projects`
 
 ### Identity
 
@@ -110,6 +111,21 @@ Company-level experience with project-level detail inside each company.
   and worked with product requirements from discovery to release.
 ```
 
+### Education
+
+Formal education, courses, certificates, and training that can support the cover letter when relevant.
+
+```md
+## Education
+
+### Institution Name
+
+- Degree: Bachelor's degree / Course / Certificate
+- Dates: 2018-2022
+- Description:
+  Studied software engineering fundamentals, frontend development, or a relevant specialization.
+```
+
 ### Projects
 
 Standalone projects, side projects, open-source work, or projects that deserve more emphasis than company chronology.
@@ -131,7 +147,6 @@ Standalone projects, side projects, open-source work, or projects that deserve m
 These can be added after MVP without changing the core prompt contract:
 
 - `## Achievements`: selected measurable wins across roles.
-- `## Education`: degree, courses, certificates.
 - `## Preferences`: industries, company size, work format, relocation.
 - `## Anti-Preferences`: things to avoid in matching or wording.
 - `## Keywords`: technologies, domains, and terms that should be easy to match.
@@ -180,6 +195,14 @@ These can be added after MVP without changing the core prompt contract:
 - Role:
 - Stack:
 - What I did:
+
+## Education
+
+### Institution Name
+
+- Degree:
+- Dates:
+- Description:
 
 ## Projects
 
